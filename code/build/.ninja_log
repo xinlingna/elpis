@@ -1,0 +1,13 @@
+# ninja log v5
+2	149	1754721267308835978	CMakeFiles/libelpis.dir/src/pqueue.cpp.o	cf6339e4345a64f
+3	264	1754721267424835094	CMakeFiles/libelpis.dir/src/file_utils.cpp.o	73340707181c229a
+3	308	1754721267467834766	CMakeFiles/libelpis.dir/src/Setting.cpp.o	51c5a0b7f2b6d35e
+1	1066	1754721268225828987	CMakeFiles/libelpis.dir/src/BufferManager.cpp.o	632a853d7d69c318
+1	1077	1754721268236828904	CMakeFiles/libelpis.dir/src/calc_utils.cpp.o	2c671e140b97cff3
+2	1125	1754721268284828538	CMakeFiles/libelpis.dir/src/Index.cpp.o	8173f07b3e426dca
+3	1344	1754721268503826868	CMakeFiles/ELPIS.dir/main.cpp.o	9c8efa020e109a87
+1	1570	1754721268727825161	CMakeFiles/libelpis.dir/src/Hercules.cpp.o	50b9d4a2e315abb1
+2	1830	1754721268987823179	CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o	5f9193cc274e8356
+2	2046	1754721269202821540	CMakeFiles/libelpis.dir/src/Node.cpp.o	4ae783dab7e2d389
+2046	2183	1754721269316820671	liblibelpis.a	7a2ab5c609c8c0ef
+2183	2297	1754721269455819611	ELPIS	1afc1c70b0bb2afc

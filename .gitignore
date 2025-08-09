@@ -1,0 +1,10 @@
+# 忽略 IDE 文件
+.idea/
+.vscode/
+*.iml
+
+# 忽略 index 目录中的所有文件
+index/**
+
+# 忽略 data 目录中的所有文件
+data/**
