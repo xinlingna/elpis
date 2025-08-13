@@ -83,7 +83,7 @@ public :
 
 
 
-    void queryBinaryFile(unsigned int k, int i);
+    void queryBinaryFile(unsigned int k, int i, float thres_probability, float μ, float T);
 
     float calculateRecall(std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> top_candidates, 
                       int* groundtruth_id, unsigned int k, unsigned int groundtruth_top_k);
@@ -92,12 +92,12 @@ public :
 
     void printKNN(std::vector<std::pair<float,unsigned int>> topkID, int k, double time, queue<unsigned int> &visited, bool para=true);
 
-    void searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index);
+    void searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, float thres_probability, float μ, float T);
     void searchPredictedNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index);
 
     void searchGraphLeaf(Node * node,const void *query_data, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
-                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag,  bool searchWithWeight=false) ;
+                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag,  bool searchWithWeight=false, float thres_probability=0.3, float μ=0.0, float T=1.0) ;
     void searchflat(Node * node, unsigned int entrypoint, const void *data_point, size_t beamwidth,size_t k,
                 std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> & top_candidates,
                 float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit);
@@ -124,7 +124,7 @@ public :
     void  searchflatWithWeight(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                           float &bsf, querying_stats &stats, unsigned short *threadvisits, unsigned short &round_visit,
-                          float μ=0.0, float T=1.0, float thres_probability=0);
+                          float thres_probability=0.3,float μ=0.0, float T=1.0);
 
     void searchflatWithWeight_HopPath(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,

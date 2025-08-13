@@ -103,7 +103,7 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
   --groundtruth_dataset_size 100 \
   --groundtruth_top_k 100 \
   --k 10 \
-  --L 32 \
+  --L 24 \
   --nprobes 10 \
   --mode 1 -->
 
@@ -115,14 +115,17 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
   --query_dataset_size 10000 \
   --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_groundtruth.bin \
   --groundtruth_dataset_size 10000 \
-  --groundtruth_top_k 20 \
+  --groundtruth_top_k 100 \
   --learn_dataset  /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn.bin\
   --learn_dataset_size 100000 \
   --learn_groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn_top100_groundtruth.bin\
-  --ep 0 \
-  --k 20 \
-  --L 34 \
-  --nprobes 100 \
+  --ep 1 \
+  --k 10 \
+  --L 24 \
+  --nprobes 10 \
+  --thres_probability 0.3\
+  --μ 1.0 \
+  --T 1.0 \
   --mode 1
 
  ## generate leaf
@@ -182,12 +185,12 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
 ./build/ELPIS \
   --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin \
   --dataset-size 1000000 \
-  --query_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_merged_query.bin \
-  --query_dataset_size 110000 \
-  --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_merged_groundtruth.bin \
-  --groundtruth_dataset_size 110000 \
+  --query_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_query.bin \
+  --query_dataset_size 10000 \
+  --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_groundtruth.bin \
+  --groundtruth_dataset_size 10000 \
   --groundtruth_top_k 100 \
-  --index-path /home/xln/elpis/index/sift1M/ \
+  --index-path /home/xln/elpis/index/sift1M_query/ \
   --timeseries-size 128 \
   --leaf-size 10000 \
   --mode 2

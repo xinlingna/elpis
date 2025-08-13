@@ -1,5 +1,6 @@
 #include <iostream>
 #include "QueryEngine.h"
+#include "grasp_mu_bisect.h"
 QueryEngine::~QueryEngine() {
     // if (pq) pqueue_free(pq);  // 释放pq发生段错误，不释放内存泄漏
     // if(results) free(results);
@@ -199,7 +200,7 @@ void QueryEngine::setEF(Node * node, int ef){
         setEF(node->right_child,ef);
     }
 }
-void QueryEngine::queryBinaryFile( unsigned int k, int mode) {
+void QueryEngine::queryBinaryFile( unsigned int k, int mode, float thres_probability, float μ, float T) {
 
     if(this->groundtruth_dataset_size != this->query_dataset_size ){
         throw std::runtime_error("groundtruth dataset size != query dataset size");
@@ -264,7 +265,7 @@ void QueryEngine::queryBinaryFile( unsigned int k, int mode) {
         /* load groundtruth */
         fread(groundtruth_id, sizeof(int), groundtruth_top_k, this->groundtruth_file);    
 
-        searchNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded);
+        searchNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded, thres_probability, μ, T);
 
         q_loaded++;
 
@@ -278,7 +279,7 @@ void QueryEngine::queryBinaryFile( unsigned int k, int mode) {
 
 }
 
-void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index) {
+void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, float thres_probability, float μ, float T) {
 
     stats.reset();
 
@@ -306,6 +307,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
     }
 
 
+    // 搜索top-5作为参考
     searchGraphLeaf(App_node,query_ts, k,
                     top_candidates, App_bsf, stats, flags,
                     curr_flag, false);
@@ -460,8 +462,8 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
 
                     // 3.2.1 每个线程处理一个循环迭代
 #pragma omp for schedule(static, 1) 
-                    for (int i = 0; i < std::min(candidates_count,nprobes); i++) {     
-                    // for (int i = 0; i < candidates_count; i++) {     
+                    // for (int i = 0; i < std::min(candidates_count,nprobes); i++) {     
+                    for (int i = 0; i < candidates_count; i++) {     
 
                         node = candidates[i];
                         pthread_rwlock_rdlock(&lock_bsf);
@@ -473,7 +475,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
                             worker->stats->num_leaf_searched++;
 
                             searchGraphLeaf(node.node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
-                                             *(worker->stats), worker->flags, worker->curr_flag, false);
+                                             *(worker->stats), worker->flags, worker->curr_flag, true, thres_probability, μ, T);
 
                             if (worker->top_candidates->top().first < bsf) {
                                 pthread_rwlock_wrlock(&lock_bsf);
@@ -865,8 +867,6 @@ void QueryEngine::TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned in
 
         fread(learn_ts, sizeof(ts_type), ts_length, lfile);
         fread(learn_groundtruth_id, sizeof(int), groundtruth_top_k,  this->learn_groundtruth_file);
-
-
         TrainWeightinNpLeafParallel(learn_ts, learn_groundtruth_id, k, nprobes, learn_loaded, ep_index);
         learn_loaded++;
 
@@ -1099,26 +1099,37 @@ void QueryEngine::TrainWeightinflat(Node * node, unsigned int entrypoint, const 
              * beamwidth:
              * k:
              */
-            searchflatWithHopPath(node, entrypoint, data_point, beamwidth, k , top_candidates1, top_candidates_internalID1,bsf, stats, threadvisits, round_visit, hop_path1); // 好的结果配置
-            searchflatWithHopPath(node, entrypoint, data_point, beamwidth*2, k , top_candidates2, top_candidates_internalID2, bsf, stats, threadvisits, round_visit, hop_path2); // 差的结果配置
+            searchflatWithHopPath(node, entrypoint, data_point, beamwidth/2, k , top_candidates1, top_candidates_internalID1,bsf, stats, threadvisits, round_visit, hop_path1); // 好的结果配置
+            searchflatWithHopPath(node, entrypoint, data_point, beamwidth, k , top_candidates2, top_candidates_internalID2, bsf, stats, threadvisits, round_visit, hop_path2); // 差的结果配置
             updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2);
             // cout << "updateWeightByHopPath Success!" <<endl;
 
         }else{
-            float μ= 3.0* ep*1.0/this->ep;    ///////////////////////////
-            float T =  pow(0.8, ep);
-            float thres_probabilit =0;
+            // 退火温度
+            float T =  1.5f * pow(0.95f, ep); // T0=1.5, gamma=0.95
+            float thres_probabilit = 0.0f;
 
-            searchflatWithWeight_HopPath(node, entrypoint, data_point,  beamwidth, k, top_candidates1, top_candidates_internalID1,  // 好的结果配置
+            // 以 entrypoint 的邻接边权作为该叶子节点本轮 μ 的估计依据，匹配目标度 M*
+            auto g = node->leafgraph;
+            std::vector<double> local_edge_weights;
+            int *data_mu = (int *)g->get_linklist0(entrypoint);
+            size_t neighborhood_mu = g->getListCount((unsigned int*)data_mu);
+            for (size_t j = 1; j <= neighborhood_mu; j++) {
+                int neighborid = *(data_mu + j);
+                Edge &edge_ref = g->edgeWeightList_[entrypoint][neighborid];
+                local_edge_weights.push_back(static_cast<double>(edge_ref.weight));
+            }
+            double target_degree = static_cast<double>(node->leafgraph->M_); // 若无 M_ 可换为 index->index_setting->M
+            if (target_degree <= 0.0) target_degree = neighborhood_mu; // 兜底
+            float μ = static_cast<float>(grasp_find_mu_by_bisection(local_edge_weights, T, target_degree));
+
+            searchflatWithWeight_HopPath(node, entrypoint, data_point,  beamwidth/2, k, top_candidates1, top_candidates_internalID1,
                                         bsf, stats, threadvisits,round_visit, hop_path1, μ, T, thres_probabilit);
-            
-            searchflatWithWeight_HopPath(node, entrypoint, data_point,  beamwidth*2, k ,top_candidates2, top_candidates_internalID2,  // 差的结果配置  
-                                        bsf, stats, threadvisits,round_visit, hop_path2, μ, T, thres_probabilit);      
-            
+
+            searchflatWithWeight_HopPath(node, entrypoint, data_point,  beamwidth, k ,top_candidates2, top_candidates_internalID2,
+                                        bsf, stats, threadvisits,round_visit, hop_path2, μ, T, thres_probabilit);
+
             updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2);
-            // cout << "updateWeightByHopPath Success!" <<endl;
-
-
         }
 }
 unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates) {
@@ -1258,8 +1269,8 @@ void QueryEngine::updateWeightByHopPath( Node *node, const void *data_point,
                             std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>>  top_candidates2){
     
     // 获取 top_candidates1 和 top_candidates2 中的最优节点
-    unsigned int top1 = getTop1Index(top_candidates1); // top-1 节点在候选集1中
-    unsigned int top2 = getTop1Index(top_candidates2); // top-1 节点在候选集2中
+    unsigned int top1 = getTop1Index(top_candidates1); // top-1 节点在候选集1中，带宽低的搜索结果
+    unsigned int top2 = getTop1Index(top_candidates2); // top-1 节点在候选集2中，带宽高的搜索结果
     if(top1==top2)
             return ;
 
@@ -1267,21 +1278,22 @@ void QueryEngine::updateWeightByHopPath( Node *node, const void *data_point,
     auto g = node->leafgraph;
     float dist1 = g->fstdistfunc_(data_point, g->getDataByInternalId(top1), g->dist_func_param_);
     float dist2 = g->fstdistfunc_(data_point, g->getDataByInternalId(top2), g->dist_func_param_);
+    float new_weight = ((dist1 *1.0 / dist2) - 1.0f) * 0.1; 
 
 
-    // 遍历 hop_path1 并更新每条边的权重
-    for (size_t i = 0; i < hop_path1.size() - 1; ++i) {
-        unsigned int current_node = hop_path1[i]; // 当前节点
-        unsigned int next_node = hop_path1[i + 1]; // 下一个节点（邻居）
+    // 遍历 hop_path2 并更新每条边的权重
+    for (size_t i = 0; i < hop_path2.size() - 1; ++i) {
+        unsigned int current_node = hop_path2[i]; // 当前节点
+        unsigned int next_node = hop_path2[i + 1]; // 下一个节点（邻居）
 
         // 查找当前边的权重结构体: 注意需要引用
         if(g->edgeWeightList_==nullptr) throw::runtime_error("g->edgeWeightList_==nullptr");
         
         Edge &current_edge = g->edgeWeightList_[current_node][next_node];
 
-        // 使用 L(q, G, G') 公式来更新边的权重
-        // L(q, G, G') = δ<p', q> / δ<p, q> - 1
-        float new_weight = std::max((dist1 *1.0 / dist2) - 1.0f, 0.0) * 0.1; // 更新公式
+        // 使用 L(q, G, G') 公式来更新边的权重 ：L(q, G, G') = δ<p', q> / δ<p, q> - 1
+        // float new_weight = std::max((dist1 *1.0 / dist2) - 1.0f, 0.0) * 0.1; 
+
         current_edge.weight += new_weight; // 更新权重
     }
 }
@@ -1336,7 +1348,7 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
             // Check if this neighbor has already been visited
             if (threadvisits[neighborid] == round_visit) continue;
 
-            // Calculate edge weight (probability) for the current edge
+            // Calculate edge weight (probability) for the current edge  currnodeid->neighborid
             Edge *current_edge = &g->edgeWeightList_[currnodeid][neighborid];
             float edge_prob = 1.0f / (1 + exp(-((current_edge->weight + μ) / T)));
 
@@ -1498,7 +1510,7 @@ void QueryEngine::searchflatWithWeight_HopPath(Node *node, unsigned int entrypoi
 
 void QueryEngine::searchGraphLeaf(Node * node,const void *query_data, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
-                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag, bool searchWithWeight)  {
+                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag, bool searchWithWeight, float thres_probability, float μ, float T)  {
     auto g = node->leafgraph;
     unsigned int currObj = g->enterpoint_node_;
     float curdist = g->fstdistfunc_(query_data, g->getDataByInternalId(currObj), g->dist_func_param_);
@@ -1532,7 +1544,7 @@ void QueryEngine::searchGraphLeaf(Node * node,const void *query_data, size_t k,
 
     // search the flat level 
     if(searchWithWeight){
-        searchflatWithWeight(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag);
+        searchflatWithWeight(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, thres_probability, μ, T);
     }else{
         searchflat(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag);
     }
@@ -1632,7 +1644,7 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
     // step1: search App_node to get current top-k candidate and save in top_candidates
     searchGraphLeaf(App_node,query_ts, k,
                     top_candidates, App_bsf, stats, flags,
-                    curr_flag);
+                    curr_flag, false);
 
     cout<<"ep_index:"<<ep_index<<" || query_index:"<<learn_index<<endl;
     float recall1 = calculateRecall(top_candidates, groundtruth_id, k, groundtruth_top_k);
@@ -1759,8 +1771,8 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
 
                     // 3.2.1 每个线程处理一个循环迭代
                     #pragma omp for schedule(static, 1) 
-                    for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
-                    // for (int i = 0; i < candidates_count; i++) {      ///////////////////////////////////////////////////////
+                    // for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
+                    for (int i = 0; i < candidates_count; i++) {    
 
                         node = candidates[i];
                         pthread_rwlock_rdlock(&lock_bsf);

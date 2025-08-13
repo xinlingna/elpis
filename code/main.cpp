@@ -45,6 +45,9 @@ int main(int argc, char **argv) {
     static char* learn_dataset=nullptr;
     static char* learn_groundtruth_dataset=nullptr;
     unsigned int learn_dataset_size= 0;
+    float thres_probability=0.3;
+    float μ=0.0;
+    float T=1.0;
 
     /* model para */
     const char* model_file=nullptr;
@@ -95,6 +98,9 @@ int main(int argc, char **argv) {
                 {"learn_dataset_size",         required_argument, 0, 2008},
                 {"learn_groundtruth_dataset",  required_argument, 0, 2009},
                 {"model_file",                 required_argument, 0, 2010},
+                {"thres_probability",          required_argument, 0, 2011},
+                {"μ",                          required_argument, 0, 2012},
+                {"T",                          required_argument, 0, 2013}, 
         };
 
         // getopt_long stores the option index here.
@@ -221,6 +227,15 @@ int main(int argc, char **argv) {
             case 2009:
                 learn_groundtruth_dataset = optarg;
                 break;
+            case 2011:
+                thres_probability = atof(optarg);
+                break;
+            case 2012:
+                μ = atof(optarg);
+                break;
+            case 2013:  
+                T = atof(optarg);
+                break;
 
             case '?':
 
@@ -298,7 +313,7 @@ int main(int argc, char **argv) {
 
         queryengine->TrainWeightByLearnDataset(ep, k, mode);
 
-        queryengine->queryBinaryFile(k, mode);
+        queryengine->queryBinaryFile(k, mode, thres_probability, μ, T);
         cout << "[Querying Time] "<< index->time_stats->querying_time <<"(sec)"<<endl;  
         cout << "[QPS] "<< query_dataset_size*1.0/index->time_stats->querying_time <<endl;  
 

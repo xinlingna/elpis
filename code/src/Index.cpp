@@ -126,10 +126,10 @@ void Index::buildIndexFromBinaryData(char* dataset, file_position_type dataset_s
     }
 
     // 释放内存 mode !=2 取消注释
-    /* for(int j =0; j<i;j++)
-        nodes[j]->deleteFileBuffer(this);
-    free(this->buffer_manager->mem_array); 
- */
+    // for(int j =0; j<i;j++)
+    //     nodes[j]->deleteFileBuffer(this);
+    // free(this->buffer_manager->mem_array); 
+
     if (vwi != nullptr) {
         if (vwi->ts != nullptr) {
             free(vwi->ts);
