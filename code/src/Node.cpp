@@ -1,7 +1,3 @@
-//
-// Created by zeraph on 24‏/1‏/2021.
-//
-
 #include <thread>
 #include "Node.h"
 #include "hnswlib/hnswlib.h"

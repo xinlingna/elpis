@@ -41,18 +41,25 @@ $ cd code; chmod 777 *; ./release.sh
 1. Index build
 
 ```shell
-$ ./Release/ELPIS --dataset data --dataset-size size --index-path index_path --timeseries-size dimensions --leaf-size leaf_size --kb K  --Lb bw --mode 0 --buffer-size MaxGB
+$ ./Release/ELPIS \
+--dataset data \
+--dataset-size size \
+--index-path index_path \
+--timeseries-size dimensions \
+--leaf-size leaf_size \
+--kb K  \
+--Lb bw \
+--mode 0 \
+--buffer-size MaxGB
 
 ```
- + --kb K   --M
- + --Lb bw  --efConstruction 
  + data: Path to dataset to be indexed.
  + size: Size of dataset to be indexed.
  + index_path: The path where ELPIS is supposed to create the index.
  + dimensions: The data dimension.
  + leaf_size: The max leaf size.
- + K: Maximum Outdegree for hierarchical layers in leafgraphs(outdegree of base graph is x2).
- + bw: Beamwidth used during graphs building.
+ + K: Maximum Outdegree for hierarchical layers in leafgraphs(M，outdegree of base graph is x2).
+ + bw: Beamwidth used during graphs building.（efConstruction） 
  + buffer-size: Maximum memory size(GB) to by Hercules.
 
 <!-- sift10K -->
@@ -79,34 +86,25 @@ $ ./build/ELPIS \
   --buffer-size 512 \
   --mode 0
 
-## Search
+### Search
 
 ```shell
-$ ./Release/ELPIS --queries queries --queries-size size --index-path index_path --k k --L bw --nprobes maxvl --mode 1 
-
+$ ./Release/ELPIS \
+--queries queries \
+--queries-size size \
+--index-path index_path \
+--k k \
+--L bw \
+--nprobes maxvl \
+--mode 1 \
 ```
 
  + queries: Path to the queries set.
  + size: Size of queries set.
  + index_path: The path where ELPIS index can be found.
- + k: Number of nearest neighbors answers for each query.
- + bw: Beamwidth used during graphs search. (候选池的大小)
+ + k: Top-k nearest neighbors answers for each query.
+ + bw: Beamwidth used during graphs search. 
  + maxvl: Maximum number of leaves to search for each query. 
-
-<!-- mode==1 -->
-<!-- <!-- sift10K -->
-./build/ELPIS \
-  --index-path /home/xln/elpis/index/siftsmall_build/ \
-  --query_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_query.bin \
-  --query_dataset_size 100 \
-  --groundtruth_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_groundtruth.bin \
-  --groundtruth_dataset_size 100 \
-  --groundtruth_top_k 100 \
-  --k 10 \
-  --L 24 \
-  --nprobes 10 \
-  --mode 1 -->
-
 
 <!-- sift1M -->
 ./build/ELPIS \
@@ -116,19 +114,23 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
   --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_groundtruth.bin \
   --groundtruth_dataset_size 10000 \
   --groundtruth_top_k 100 \
-  --learn_dataset  /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn.bin\
+  --learn_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn.bin \
   --learn_dataset_size 100000 \
-  --learn_groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn_top100_groundtruth.bin\
-  --ep 1 \
+  --learn_groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn_top100_groundtruth.bin \
+  --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin \
+  --ep 0 \
   --k 10 \
   --L 24 \
   --nprobes 10 \
-  --thres_probability 0.3\
-  --μ 1.0 \
+  --thres_probability 0.1 \
+  --μ -2.197 \
   --T 1.0 \
+  --zero_edge_pass_ratio 0.8 \
   --mode 1
 
- ## generate leaf
+
+
+ ### generate leaf
 ```shell
 ./build/ELPIS \
 --dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_base.bin \
@@ -142,9 +144,9 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
 --timeseries-size 128 \
 --leaf-size 1000 \
 --mode 2
+```
 
-
-
+``` shell
 ./build/ELPIS \
 --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin \
 --dataset-size 1000000 \
@@ -153,13 +155,12 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
 --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_groundtruth.bin \
 --groundtruth_dataset_size 10000 \
 --groundtruth_top_k 10 \
---index-path /home/xln/elpis/index/sift_top10_100k/ \
+--index-path /home/xln/elpis/index/sift_top10_10k/ \
 --timeseries-size 128 \
---leaf-size 100000 \
+--leaf-size 10000 \
 --kb 16 \
 --Lb 400 \
 --mode 2
-
 ```
 
 
@@ -208,7 +209,6 @@ $ ./Release/ELPIS --queries queries --queries-size size --index-path index_path 
   --timeseries-size 128 \
   --leaf-size 10000 \
   --mode 2
-
 
 ```
  

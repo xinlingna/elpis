@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
     float thres_probability=0.3;
     float μ=0.0;
     float T=1.0;
+    float zero_edge_pass_ratio = 0.0f; // ρ
 
     /* model para */
     const char* model_file=nullptr;
@@ -101,6 +102,7 @@ int main(int argc, char **argv) {
                 {"thres_probability",          required_argument, 0, 2011},
                 {"μ",                          required_argument, 0, 2012},
                 {"T",                          required_argument, 0, 2013}, 
+                {"zero_edge_pass_ratio",      required_argument, 0, 2014},
         };
 
         // getopt_long stores the option index here.
@@ -236,6 +238,11 @@ int main(int argc, char **argv) {
             case 2013:  
                 T = atof(optarg);
                 break;
+            case 2014:
+                zero_edge_pass_ratio = atof(optarg);
+                if (zero_edge_pass_ratio < 0.0f) zero_edge_pass_ratio = 0.0f;
+                if (zero_edge_pass_ratio > 1.0f) zero_edge_pass_ratio = 1.0f;
+                break;
 
             case '?':
 
@@ -287,7 +294,8 @@ int main(int argc, char **argv) {
 
     ///CREATE INDEX
     if(mode == 0){  /* 存在内存泄漏的问题，需要修改 */
-    Index * index = Index::initIndex(index_path, time_series_size, buffered_memory_size*1024, init_segments, leaf_size, efConstruction, M);
+    Index * index = Index::initIndex(index_path, time_series_size, buffered_memory_size*1024, init_segments, 
+        leaf_size, efConstruction, M);
 
     cout<<"[Index Building Begins]"<<endl;
     
@@ -309,7 +317,8 @@ int main(int argc, char **argv) {
         QueryEngine * queryengine = new QueryEngine(query_dataset, query_dataset_size, 
                                                     groundtruth_dataset ,groundtruth_top_k, groundtruth_dataset_size,
                                                     learn_dataset, learn_dataset_size, learn_groundtruth_dataset,
-                                                    index, ef, nprobes, parallel, nworker, flatt, k, ep, model_file); 
+                                                    dataset,
+                                                    index, ef, nprobes, parallel, nworker, flatt, k, ep, model_file, zero_edge_pass_ratio); 
 
         queryengine->TrainWeightByLearnDataset(ep, k, mode);
 

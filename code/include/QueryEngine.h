@@ -36,10 +36,13 @@ public :
     QueryEngine(const char *query_filename, unsigned int query_dataset_size, 
                 const char *groundtruth_filename,unsigned int groundtruth_top_k,  unsigned int groundtruth_dataset_size,
                 const char* learn_dataset, unsigned learn_dataset_size,  const char *learn_groundtruth_dataset,
+                const char* dataset,
                 Index *index, int ef, unsigned int nprobes, bool parallel,
-                unsigned int nworker, bool flatt, unsigned int k, unsigned int ep, const char* model_file=nullptr);
+                unsigned int nworker, bool flatt, unsigned int k, unsigned int ep, const char* model_file=nullptr,
+                float zero_edge_pass_ratio = 0.0f);
 
     Index * index;
+    const char * dataset;
     const char * query_filename;
     int query_dataset_size;
     const char *groundtruth_filename;
@@ -51,6 +54,7 @@ public :
     const char* learn_groundtruth_dataset;
 
     const char * model_file;
+    float zero_edge_pass_ratio; // ρ: 权重为0的边按该概率放行
 
 
 

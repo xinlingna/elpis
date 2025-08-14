@@ -442,6 +442,43 @@
 }
 
 
+    // 写出叶子包含的向量数目（顺序与质心一致）
+    void Hercules::write_leaf_sizes_file(const char* output_path_) {
+    	if (this->num_leaf_node <= 0) {
+    		std::cerr << "Error: num_leaf_node is not set or is zero." << std::endl;
+    		return;
+    	}
+
+    	// 先按 leafId2Idx 的顺序放置大小
+    	int* leaf_sizes = static_cast<int*>(calloc(this->num_leaf_node, sizeof(int)));
+    	for (int i = 0; i < this->num_leaf_node; i++) {
+    		Node *leaf = this->leaves[i];
+    		int count = leaf->file_buffer->buffered_list_size + leaf->file_buffer->disk_count;
+    		int idx = this->leafId2Idx[leaf->id];
+    		leaf_sizes[idx] = count;
+    	}
+
+    	char path_buf[1024];
+    	if (output_path_ == nullptr || strlen(output_path_) == 0) {
+    		snprintf(path_buf, sizeof(path_buf), "%sleaf_size.txt", this->index->index_setting->index_path_txt);
+    	} else {
+    		strncpy(path_buf, output_path_, sizeof(path_buf));
+    		path_buf[sizeof(path_buf)-1] = '\0';
+    	}
+
+    	std::ofstream ofs(path_buf);
+    	if (!ofs.is_open()) {
+    		std::cerr << "can not open file: " << path_buf << std::endl;
+    		exit(-1);
+    	}
+    	for (int i = 0; i < this->num_leaf_node; i++) {
+    		ofs << leaf_sizes[i] << "\n";
+    	}
+    	ofs.close();
+    	free(leaf_sizes);
+    	std::cout << "Leaf sizes written to " << path_buf << std::endl;
+    }
+
     /* ******************************* 建立时间序列id到叶子节点的映射，便于生成label************************************** */
  	void Hercules::generate_ts_leaf_map_file(const char* output_path){
 		fillTsLeafMap();
@@ -747,7 +784,7 @@
         // 生成叶子节点文件以及质心文件
        generate_leafnode_file();
        generate_leaf_centroids();
-
+	   write_leaf_sizes_file();
        // 生成标签
        generate_label();
 

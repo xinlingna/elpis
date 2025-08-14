@@ -1,4 +1,8 @@
 #include <iostream>
+#include <random>
+#include <thread>
+#include <ctime>
+#include <cmath>
 #include "QueryEngine.h"
 #include "grasp_mu_bisect.h"
 QueryEngine::~QueryEngine() {
@@ -103,9 +107,12 @@ QueryEngine::~QueryEngine() {
 QueryEngine::QueryEngine(const char *query_filename, unsigned query_dataset_size, 
                         const char *groundtruth_filename, unsigned int groundtruth_top_k, unsigned int groundtruth_dataset_size,
                         const char* learn_dataset, unsigned int learn_dataset_size, const char * learn_groundtruth_dataset,
+                        const char* dataset,
                          Index *index, int ef, unsigned int nprobes, bool parallel,
                          unsigned int nworker, bool flatt ,unsigned int k, unsigned int ep,
-                        const char *model_file) {
+                        const char *model_file, float zero_edge_pass_ratio) {
+    
+    this->dataset = dataset;
     this->query_filename = query_filename;
     this->query_dataset_size = query_dataset_size;
 
@@ -117,6 +124,7 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned query_dataset_size
     this->learn_dataset_size=learn_dataset_size;
     this->learn_groundtruth_dataset = learn_groundtruth_dataset;
     this->model_file=model_file;
+    this->zero_edge_pass_ratio = zero_edge_pass_ratio;
 
     this->index = index;
     this->index->ef = ef; 
@@ -285,6 +293,33 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
 
     Time start = now();
 
+    float top1_distance = 0;
+    {
+        // query的top1结果下标为groundtruth_id[0]，需要根据下标到dataset中找到对应的top1向量，并计算其距离
+    
+        // 打开dataset文件
+        FILE *dataset_file = fopen(this->dataset, "rb");
+        if (dataset_file == nullptr) {
+            fprintf(stderr, "Dataset file %s not found!\n", this->dataset);
+            exit(-1);
+        }
+    
+        // 根据groundtruth_id[0]找到对应的向量
+        fseek(dataset_file, groundtruth_id[0] * this->index->index_setting->timeseries_size * sizeof(ts_type), SEEK_SET);
+        ts_type *top1_vector = static_cast<ts_type *>(malloc_search(sizeof(ts_type) * this->index->index_setting->timeseries_size));
+        fread(top1_vector, sizeof(ts_type), this->index->index_setting->timeseries_size, dataset_file);
+    
+        // 计算top1向量与query_ts的欧几里得距离
+        for (int i = 0; i < this->index->index_setting->timeseries_size; i++) {
+            top1_distance += (query_ts[i] - top1_vector[i]) * (query_ts[i] - top1_vector[i]);
+        }
+        cout<<"top1_distance:"<<top1_distance<<endl;
+    
+        // 释放top1向量
+        free(top1_vector);
+    }
+
+
     ts_type kth_bsf = FLT_MAX;  // global  kth_bsf
 
     this->results[query_index]=(int*)calloc(k, sizeof(int));
@@ -306,6 +341,11 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
         }
     }
 
+
+    // all_leaf_nodes_dis: 所有叶子节点的距离
+    float *all_leaf_nodes_dis = (float*)calloc(Node::num_leaf_node, sizeof(float));
+    all_leaf_nodes_dis[0] = App_node->calculate_node_min_distance(this->index, query_ts, stats);
+    int leaf_node_count = 1;
 
     // 搜索top-5作为参考
     searchGraphLeaf(App_node,query_ts, k,
@@ -357,11 +397,12 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
         int pos;
         kth_bsf = top_candidates.top().first; // current top-k_th timeseries distance
         while ((n = static_cast<query_result *>(pqueue_pop(pq)))) {
-            if (n->distance > kth_bsf) {//getting through two pruning process is tricky...
-                break;
-            }
+            // if (n->distance > kth_bsf) {//getting through two pruning process is tricky...
+            //     break;
+            // }
             if (n->node->is_leaf) // n is a leaf
             {
+                all_leaf_nodes_dis[leaf_node_count++] = n->distance;
 
                 // candidates_count: candidate leaf number
                 // pos: index of candidate leaf
@@ -404,24 +445,54 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
             free(n);
         }
         stats.num_candidates = candidates_count;
+
+        //将所有叶子节点的距离进行排序
+        sort(all_leaf_nodes_dis+1, all_leaf_nodes_dis + leaf_node_count);
+        // 以追加的形式写入文件 文件名：soft1M_leaf_nodes_dis.txt，保存到和dataset相同的目录下,  --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin
+        std::string dataset_path = this->dataset;
+
+        // 获取目录（去掉最后的文件名）
+        std::string dataset_dir = dataset_path.substr(0, dataset_path.find_last_of('/'));
+        
+        // 获取数据集文件名（去掉路径）
+        std::string dataset_file = dataset_path.substr(dataset_path.find_last_of('/') + 1);
+        
+        // 去掉扩展名（如 .bin）
+        std::string dataset_name = dataset_file.substr(0, dataset_file.find_last_of('.'));
+        
+        // 拼接输出文件路径
+        std::string leaf_nodes_dis_file = dataset_dir + "/" + dataset_name + "_leaf_nodes_dis.txt";
+        
+        // 以追加模式写入
+        std::ofstream outfile(leaf_nodes_dis_file, std::ios::app);
+        if (!outfile) {
+            std::cerr << "无法打开文件 " << leaf_nodes_dis_file << std::endl;
+        }
+        outfile<<top1_distance<<" ";
+        for (int i = 1; i < leaf_node_count; i++) {
+            outfile << all_leaf_nodes_dis[i] << " ";
+        }
+        outfile<<endl;
+        outfile.close();
+
         /*  */
-         std::string num_candidates_file =  "soft1M_num_candidates_" + std::to_string(k) + ".txt";
-         std::string num_computation_count = "soft1M_computation_count_" + std::to_string(k) + ".txt";
+        //  std::string num_candidates_file =  "soft1M_num_candidates_" + std::to_string(k) + ".txt";
+        //  std::string num_computation_count = "soft1M_computation_count_" + std::to_string(k) + ".txt";
         
-         // 打开文件，追加模式（ios::app）
-         std::ofstream outfile(num_candidates_file, std::ios::app);
-         if (!outfile) {
-             std::cerr << "无法打开文件 " << num_candidates_file << std::endl;
-         }
+        //  // 打开文件，追加模式（ios::app）
+        //  std::ofstream outfile(num_candidates_file, std::ios::app);
+        //  if (!outfile) {
+        //      std::cerr << "无法打开文件 " << num_candidates_file << std::endl;
+        //  }
         
-         std::ofstream outfile2(num_computation_count, std::ios::app);
-         if (!outfile2) {
-             std::cerr << "无法打开文件 " << num_computation_count << std::endl;
-         }
+        //  std::ofstream outfile2(num_computation_count, std::ios::app);
+        //  if (!outfile2) {
+        //      std::cerr << "无法打开文件 " << num_computation_count << std::endl;
+        //  }
         
-         // 写入内容
-         outfile << candidates_count << std::endl;
-         outfile2 << computation_count << std::endl;
+        //  // 写入内容
+        //  outfile << candidates_count << std::endl;
+        //  outfile2 << computation_count << std::endl;
         cout<<"stats.num_candidates:" << stats.num_candidates<<endl;
         cout<<"computation_count:"<<computation_count<<endl;
 
@@ -475,7 +546,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
                             worker->stats->num_leaf_searched++;
 
                             searchGraphLeaf(node.node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
-                                             *(worker->stats), worker->flags, worker->curr_flag, true, thres_probability, μ, T);
+                                             *(worker->stats), worker->flags, worker->curr_flag, false, thres_probability, μ, T);
 
                             if (worker->top_candidates->top().first < bsf) {
                                 pthread_rwlock_wrlock(&lock_bsf);
@@ -517,8 +588,8 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
 
         float recall2 = calculateRecall(top_candidates, groundtruth_id, k, groundtruth_top_k);
         cout<<"recall2:"<<recall2<<endl;
-        outfile.close();
-        outfile2.close();
+        // outfile.close();
+        // outfile2.close();
 
 
         /* 统计topkID */
@@ -1381,11 +1452,20 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
             // Calculate edge weight (probability) for the current edge  currnodeid->neighborid
             Edge *current_edge = &g->edgeWeightList_[currnodeid][neighborid];
             float edge_prob = 1.0f / (1 + exp(-((current_edge->weight + μ) / T)));
-            cout<<"edge_prob:"<<edge_prob<<endl;
-
             if (edge_prob < thres_probability) {
-                // Skip this edge if the probability is less than thres_probability
-                continue;
+                // 对权重为0的边按概率 ρ 放行
+                if (std::fabs(current_edge->weight) <= 1e-12f) {
+                    thread_local std::mt19937 rng(
+                        std::hash<std::thread::id>{}(std::this_thread::get_id()) ^ static_cast<uint32_t>(time(nullptr))
+                    );
+                    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+                    if (dist(rng) >= this->zero_edge_pass_ratio) {
+                        continue;
+                    }
+                } else {
+                    // 非0边保持原来的剪枝逻辑
+                    continue;
+                }
             }
 
             threadvisits[neighborid] = round_visit; // marked visited
@@ -1475,10 +1555,18 @@ void QueryEngine::searchflatWithWeight_HopPath(Node *node, unsigned int entrypoi
             // Calculate edge weight (probability) for the current edge
             Edge *current_edge = &g->edgeWeightList_[currnodeid][neighborid];
             float edge_prob = 1.0f / (1 + exp(-((current_edge->weight + μ) / T)));
-
             if (edge_prob < thres_probability) {
-                // Skip this edge if the probability is less than thres_probability
-                continue;
+                if (std::fabs(current_edge->weight) <= 1e-12f) {
+                    thread_local std::mt19937 rng(
+                        std::hash<std::thread::id>{}(std::this_thread::get_id()) ^ static_cast<uint32_t>(time(nullptr))
+                    );
+                    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+                    if (dist(rng) >= this->zero_edge_pass_ratio) {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
             }
 
             threadvisits[neighborid] = round_visit; // marked visited
