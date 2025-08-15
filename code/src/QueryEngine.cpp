@@ -290,44 +290,15 @@ void QueryEngine::queryBinaryFile( unsigned int k, int mode, float thres_probabi
 void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, float thres_probability, float μ, float T) {
 
     stats.reset();
-
-    Time start = now();
-
-    float top1_distance = 0;
-    {
-        // query的top1结果下标为groundtruth_id[0]，需要根据下标到dataset中找到对应的top1向量，并计算其距离
-    
-        // 打开dataset文件
-        FILE *dataset_file = fopen(this->dataset, "rb");
-        if (dataset_file == nullptr) {
-            fprintf(stderr, "Dataset file %s not found!\n", this->dataset);
-            exit(-1);
-        }
-    
-        // 根据groundtruth_id[0]找到对应的向量
-        fseek(dataset_file, groundtruth_id[0] * this->index->index_setting->timeseries_size * sizeof(ts_type), SEEK_SET);
-        ts_type *top1_vector = static_cast<ts_type *>(malloc_search(sizeof(ts_type) * this->index->index_setting->timeseries_size));
-        fread(top1_vector, sizeof(ts_type), this->index->index_setting->timeseries_size, dataset_file);
-    
-        // 计算top1向量与query_ts的欧几里得距离
-        for (int i = 0; i < this->index->index_setting->timeseries_size; i++) {
-            top1_distance += (query_ts[i] - top1_vector[i]) * (query_ts[i] - top1_vector[i]);
-        }
-        cout<<"top1_distance:"<<top1_distance<<endl;
-    
-        // 释放top1向量
-        free(top1_vector);
-    }
-
-
+    Time start = now();    
     ts_type kth_bsf = FLT_MAX;  // global  kth_bsf
+
 
     this->results[query_index]=(int*)calloc(k, sizeof(int));
     if (this->results[query_index] == nullptr) {
         fprintf(stderr, "Memory allocation failed for this->results[%d]\n", query_index);
         exit(-1);
     }
-
 
     // step0: route query_ts from root to the leaf node it belongs to
     Node *App_node = this->index->first_node; 
@@ -341,13 +312,37 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
         }
     }
 
+    // // all_leaf_nodes_dis: 所有叶子节点的距离
+    //     float top1_distance = 0;
+    // {
+    //     // query的top1结果下标为groundtruth_id[0]，需要根据下标到dataset中找到对应的top1向量，并计算其距离
+    
+    //     // 打开dataset文件
+    //     FILE *dataset_file = fopen(this->dataset, "rb");
+    //     if (dataset_file == nullptr) {
+    //         fprintf(stderr, "Dataset file %s not found!\n", this->dataset);
+    //         exit(-1);
+    //     }
+    
+    //     // 根据groundtruth_id[0]找到对应的向量
+    //     fseek(dataset_file, groundtruth_id[0] * this->index->index_setting->timeseries_size * sizeof(ts_type), SEEK_SET);
+    //     ts_type *top1_vector = static_cast<ts_type *>(malloc_search(sizeof(ts_type) * this->index->index_setting->timeseries_size));
+    //     fread(top1_vector, sizeof(ts_type), this->index->index_setting->timeseries_size, dataset_file);
+    
+    //     // 计算top1向量与query_ts的欧几里得距离
+    //     for (int i = 0; i < this->index->index_setting->timeseries_size; i++) {
+    //         top1_distance += (query_ts[i] - top1_vector[i]) * (query_ts[i] - top1_vector[i]);
+    //     }
+    //     cout<<"top1_distance:"<<top1_distance<<endl;
+    
+    //     // 释放top1向量
+    //     free(top1_vector);
+    // }
+    // float *all_leaf_nodes_dis = (float*)calloc(Node::num_leaf_node, sizeof(float));
+    // all_leaf_nodes_dis[0] = App_node->calculate_node_min_distance(this->index, query_ts, stats);
+    // int leaf_node_count = 1;
 
-    // all_leaf_nodes_dis: 所有叶子节点的距离
-    float *all_leaf_nodes_dis = (float*)calloc(Node::num_leaf_node, sizeof(float));
-    all_leaf_nodes_dis[0] = App_node->calculate_node_min_distance(this->index, query_ts, stats);
-    int leaf_node_count = 1;
-
-    // 搜索top-5作为参考
+    // 搜索top-k作为参考
     searchGraphLeaf(App_node,query_ts, k,
                     top_candidates, App_bsf, stats, flags,
                     curr_flag, false);
@@ -377,12 +372,9 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
 
     // step2: get candidate leaf
     
-        // else.1 insert root_pq_item into pq
         auto *root_pq_item = static_cast<query_result *>(malloc_search(sizeof(struct query_result)));
-
         root_pq_item->node = this->index->first_node;
         root_pq_item->distance = this->index->first_node->calculate_node_min_distance(this->index, query_ts, stats);
-
         pqueue_insert(pq, root_pq_item); 
 
         struct query_result *n;
@@ -390,22 +382,19 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
         ts_type bsf = FLT_MAX;
 
 
-        // else.2 pruning internal nodes and leaf nodes
         query_result * candidates =  static_cast<query_result *>(calloc(Node::num_leaf_node+1, sizeof(struct query_result))); // 数组，距离
         unsigned int candidates_count = 0;
         unsigned int computation_count = 0;
         int pos;
         kth_bsf = top_candidates.top().first; // current top-k_th timeseries distance
         while ((n = static_cast<query_result *>(pqueue_pop(pq)))) {
-            // if (n->distance > kth_bsf) {//getting through two pruning process is tricky...
-            //     break;
-            // }
-            if (n->node->is_leaf) // n is a leaf
+            if (n->distance > kth_bsf) {//getting through two pruning process is tricky...
+                break;
+            }
+            if (n->node->is_leaf) 
             {
-                all_leaf_nodes_dis[leaf_node_count++] = n->distance;
+                // all_leaf_nodes_dis[leaf_node_count++] = n->distance; // 记录所有叶子节点的距离,用于查看叶子剪枝效率
 
-                // candidates_count: candidate leaf number
-                // pos: index of candidate leaf
                 pos = candidates_count - 1; 
 
                 if (pos >= 0)
@@ -417,7 +406,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
                 candidates[pos + 1].node = n->node;
                 candidates[pos + 1].distance = n->distance;
                 candidates_count++;
-            } else                // n is a internal leaf
+            } else            
             {
                 // check node->left_child
                 computation_count++;
@@ -433,7 +422,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
                 // check node->right_child
                 computation_count++;
                 child_distance = n->node->right_child->calculate_node_min_distance(this->index, query_ts, stats);
-                if ((child_distance < kth_bsf) && (n->node->right_child != App_node)) //add epsilon
+                if ((child_distance < kth_bsf) && (n->node->right_child != App_node)) 
                 {
                     auto *mindist_result_right = static_cast<query_result *>(malloc_search(sizeof(struct query_result)));
                     mindist_result_right->node = n->node->right_child;
@@ -446,53 +435,45 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
         }
         stats.num_candidates = candidates_count;
 
-        //将所有叶子节点的距离进行排序
-        sort(all_leaf_nodes_dis+1, all_leaf_nodes_dis + leaf_node_count);
-        // 以追加的形式写入文件 文件名：soft1M_leaf_nodes_dis.txt，保存到和dataset相同的目录下,  --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin
-        std::string dataset_path = this->dataset;
+        // 将所有叶子节点的距离写入文件
+        // {
+        //     //将所有叶子节点的距离进行排序
+        //     sort(all_leaf_nodes_dis+1, all_leaf_nodes_dis + leaf_node_count);
+        //     std::string dis_dataset_dir = this->index->index_path;
+        //     std::string leaf_nodes_dis_file = dis_dataset_dir + "/leaf_nodes_dis.txt";
+         
+        //     std::ofstream outfile(leaf_nodes_dis_file, std::ios::app);
+        //     if (!outfile) {
+        //         std::cerr << "Cannot open file: " << leaf_nodes_dis_file << std::endl;
+        //     }
+        //     outfile<<top1_distance<<" ";
+        //     for (int i = 1; i < leaf_node_count; i++) {
+        //         outfile << all_leaf_nodes_dis[i] << " ";
+        //     }
+        //     outfile<<endl;
+        //     outfile.close();
+        // }
 
-        // 获取目录（去掉最后的文件名）
-        std::string dataset_dir = dataset_path.substr(0, dataset_path.find_last_of('/'));
-        
-        // 获取数据集文件名（去掉路径）
-        std::string dataset_file = dataset_path.substr(dataset_path.find_last_of('/') + 1);
-        
-        // 去掉扩展名（如 .bin）
-        std::string dataset_name = dataset_file.substr(0, dataset_file.find_last_of('.'));
-        
-        // 拼接输出文件路径
-        std::string leaf_nodes_dis_file = dataset_dir + "/" + dataset_name + "_leaf_nodes_dis.txt";
-        
-        // 以追加模式写入
-        std::ofstream outfile(leaf_nodes_dis_file, std::ios::app);
-        if (!outfile) {
-            std::cerr << "无法打开文件 " << leaf_nodes_dis_file << std::endl;
-        }
-        outfile<<top1_distance<<" ";
-        for (int i = 1; i < leaf_node_count; i++) {
-            outfile << all_leaf_nodes_dis[i] << " ";
-        }
-        outfile<<endl;
-        outfile.close();
-
-        /*  */
-        //  std::string num_candidates_file =  "soft1M_num_candidates_" + std::to_string(k) + ".txt";
-        //  std::string num_computation_count = "soft1M_computation_count_" + std::to_string(k) + ".txt";
-        
-        //  // 打开文件，追加模式（ios::app）
-        //  std::ofstream outfile(num_candidates_file, std::ios::app);
-        //  if (!outfile) {
-        //      std::cerr << "无法打开文件 " << num_candidates_file << std::endl;
-        //  }
-        
-        //  std::ofstream outfile2(num_computation_count, std::ios::app);
-        //  if (!outfile2) {
-        //      std::cerr << "无法打开文件 " << num_computation_count << std::endl;
-        //  }
-        
-        //  // 写入内容
-        //  outfile << candidates_count << std::endl;
-        //  outfile2 << computation_count << std::endl;
+        // 将搜索的叶子节点的数量和计算的次数写入文件
+        char num_candidates_file[256];
+        char num_computation_count[256];
+        sprintf(num_candidates_file, "%s/num_candidates_%d.txt", this->index->index_path, k);
+        sprintf(num_computation_count, "%s/computation_count_%d.txt", this->index->index_path, k);
+    
+         // 打开文件，追加模式（ios::app）
+         std::ofstream outfile(num_candidates_file, std::ios::app);
+         if (!outfile) {
+             std::cerr << "无法打开文件 " << num_candidates_file << std::endl;
+         }
+    
+         std::ofstream outfile2(num_computation_count, std::ios::app);
+         if (!outfile2) {
+             std::cerr << "无法打开文件 " << num_computation_count << std::endl;
+         }
+    
+         // 写入内容
+         outfile << candidates_count << std::endl;
+         outfile2 << computation_count << std::endl;
         cout<<"stats.num_candidates:" << stats.num_candidates<<endl;
         cout<<"computation_count:"<<computation_count<<endl;
 
@@ -1233,7 +1214,7 @@ void QueryEngine::TrainWeightinflat(Node * node, unsigned int entrypoint, const 
             updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2);
         }
 }
-unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates) {
+unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float, unsigned int>>> top_candidates) {
     // 临时保存最大堆的元素
     std::vector<std::pair<float, unsigned int>> candidates;
 

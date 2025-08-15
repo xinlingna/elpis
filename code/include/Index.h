@@ -27,6 +27,7 @@ public:
     Node * first_node;
     BufferManager *buffer_manager;
     timelapse * time_stats;
+    char *index_path;
 
     static Index *
     initIndex(char *path, unsigned int size, double size1, unsigned int segments, unsigned int size2, int construction,

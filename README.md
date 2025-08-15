@@ -78,9 +78,9 @@ $ ./build/ELPIS \
 $ ./build/ELPIS \
   --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin \
   --dataset-size 1000000 \
-  --index-path /home/xln/elpis/index/sift_build/ \
+  --index-path /home/xln/elpis/index/sift_10k_hv/ \
   --timeseries-size 128 \
-  --leaf-size 50000 \
+  --leaf-size 10000 \
   --kb 20 \
   --Lb 36 \
   --buffer-size 512 \
@@ -125,7 +125,7 @@ $ ./Release/ELPIS \
   --thres_probability 0.1 \
   --μ -2.197 \
   --T 1.0 \
-  --zero_edge_pass_ratio 0.8 \
+  --zero_edge_pass_ratio 0 \
   --mode 1
 
 
@@ -153,9 +153,9 @@ $ ./Release/ELPIS \
 --query_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_query.bin \
 --query_dataset_size 10000 \
 --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_groundtruth.bin \
---groundtruth_dataset_size 10000 \
+--groundtruth_dataset_size 5000 \
 --groundtruth_top_k 10 \
---index-path /home/xln/elpis/index/sift_top10_10k/ \
+--index-path /home/xln/elpis/index/sift_top10_10k_hv_mode2/ \
 --timeseries-size 128 \
 --leaf-size 10000 \
 --kb 16 \

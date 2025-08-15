@@ -456,7 +456,8 @@ bool Index::insertTS(VectorWithIndex* vwi )  {
             << ", will be splitted into 2 Leaf node!"<<endl;
 
 
-            for (int idx = 0; idx < this->index_setting->max_leaf_size; ++idx) {
+            // for (int idx = 0; idx < this->index_setting->max_leaf_size; ++idx) {
+            for (int idx = 0; idx < node->node_size; ++idx) {
                 if (node->node_split_policy_route_to_left(ts_list[idx].ts)) {
 
                     node->left_child->updateStatistics(ts_list[idx].ts);
@@ -594,6 +595,7 @@ Index::Index(char *root_directory, unsigned int mode) {
     this->time_stats = new timelapse ;
     this->time_stats->index_building_time = 0;
     this->time_stats->querying_time = 0;
+    this->index_path = root_directory;
     if (access(root_directory, F_OK) != 0) {
        fprintf(stderr, "the directory does not exist. Please provide a valid directory.\n");
        exit(-1);

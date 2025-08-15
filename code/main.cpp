@@ -298,13 +298,11 @@ int main(int argc, char **argv) {
         leaf_size, efConstruction, M);
 
     cout<<"[Index Building Begins]"<<endl;
-    
     index->buildIndexFromBinaryData(dataset,dataset_size);
 
     /* 将训练权重的代码放置在这里 */
     /* code */
 
-    
     index->write();
 
     cout << "[Index Building Time] "<< index->time_stats->index_building_time<<"(sec)"<<endl;
