@@ -1,4 +1,4 @@
-/mnt/hdd/xln/elpis/code/build/CMakeFiles/libelpis.dir
-/mnt/hdd/xln/elpis/code/build/CMakeFiles/ELPIS.dir
-/mnt/hdd/xln/elpis/code/build/CMakeFiles/edit_cache.dir
-/mnt/hdd/xln/elpis/code/build/CMakeFiles/rebuild_cache.dir
+/home/xln/elpis/code/build/CMakeFiles/libelpis.dir
+/home/xln/elpis/code/build/CMakeFiles/ELPIS.dir
+/home/xln/elpis/code/build/CMakeFiles/edit_cache.dir
+/home/xln/elpis/code/build/CMakeFiles/rebuild_cache.dir
