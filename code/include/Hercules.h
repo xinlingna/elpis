@@ -74,7 +74,12 @@ public:
 
 
     void generateAllFiles();
-    
+    // Generate additional per-leaf cluster info files (sizes, variances, densities,
+    // intra-distances and representative vectors). Files are written so their
+    // line order corresponds exactly to the centroid order produced by
+    // `generate_leaf_centroids()` (i.e. mapped by `leafId2Idx`).
+    void generate_cluster_info_files(const char* output_path = nullptr, int num_representatives = 3);
+    void generate_cluster_info_files_corrected(const char* output_path = nullptr);
     // Destructor
     ~Hercules();
 

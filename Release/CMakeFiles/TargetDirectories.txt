@@ -1,0 +1,4 @@
+/home/xln/elpis/Release/CMakeFiles/libelpis.dir
+/home/xln/elpis/Release/CMakeFiles/ELPIS.dir
+/home/xln/elpis/Release/CMakeFiles/edit_cache.dir
+/home/xln/elpis/Release/CMakeFiles/rebuild_cache.dir
