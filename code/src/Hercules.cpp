@@ -858,7 +858,7 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 		std::cout << "ts_leaf_map.txt has been written successfully." << std::endl;
 	}
 
-	/* ******************************* top-k----> leaf-id *************************** */
+	/* ******************************* top-k groundtruth----> leaf-id *************************** */
 	void Hercules::topk2LeafId(const char* output_path)
 	{
 		knn_groundtruth = new file_position_type *[this->groundtruth_dataset_size];
@@ -995,23 +995,23 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 
 
 	/* ******************************* 生成标签************************************** */
-	void Hercules::generate_label(const char* output_path){
-		calcKNNinLeaves();
-		writeKNNDistributionsToFile(output_path);
+	void Hercules::generate_label(unsigned int selected_k, const char* output_path){
+		calcKNNinLeaves(selected_k);
+		writeKNNDistributionsToFile(selected_k,output_path);
 	}
 	
 	// 生成label：每个query的top-k在叶子中的分布
 	void Hercules::calcKNNinLeaves(unsigned int selected_k)
 	{
-		knn_distributions = new file_position_type *[this->groundtruth_dataset_size];
+		this->knn_distributions = new file_position_type *[this->groundtruth_dataset_size];
 
-		selected_k=min(selected_k,this->groundtruth_top_k);
+		selected_k=std::min<unsigned int>(selected_k,this->groundtruth_top_k);
 
 		for (int i = 0; i < this->groundtruth_dataset_size; i++)
 		{
-			knn_distributions[i] = new file_position_type[this->num_leaf_node];
-			memset(knn_distributions[i], 0, this->num_leaf_node * sizeof(file_position_type));
-			for (int j = 0; j < this->groundtruth_top_k; j++)
+			this->knn_distributions[i] = new file_position_type[this->num_leaf_node];
+			memset(this->knn_distributions[i], 0, this->num_leaf_node * sizeof(file_position_type));
+			for (int j = 0; j < selected_k; j++)
 			{
 				int ts_key=this->groundtruth_list[i][j];
 				if(ts_key>=this->dataset_size || ts_key<0){
@@ -1041,13 +1041,13 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
                 ++knn_distributions[i][leaf_idx];
 			}
 
-			// 检查knn_distribution[i]所有元素的和是否为groundtruth_top_k
+			// 检查knn_distribution[i]所有元素的和是否为selected_k
 			file_position_type sum = 0;
 			for (int k = 0; k < this->num_leaf_node; k++) {
 				sum += knn_distributions[i][k];
 			}
-			if (sum != this->groundtruth_top_k) {
-				cout<<"knn_distribution["<<i<<"] sum" << sum<<"!= groundtruth_top_k"<<endl;
+			if (sum != selected_k) {
+				cout<<"knn_distribution["<<i<<"] sum" << sum<<"!= selected_k"<<endl;
 				exit(-1);
 			}
 
@@ -1061,40 +1061,84 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 	}
 
 
-    void Hercules::writeKNNDistributionsToFile(const char* output_path_) {
+    // void Hercules::writeKNNDistributionsToFile(const char* output_path_, unsigned int selected_k) {
 
+	// 	char* output_path;
+	// 	char * knn_distribution_path = static_cast<char *>(malloc(sizeof(char) * (strlen(this->index->index_setting->index_path_txt) + strlen("knn_distributions.txt"))));
+	// 	knn_distribution_path = strcpy(knn_distribution_path, this->index->index_setting->index_path_txt);	
+	// 	knn_distribution_path = strcat(knn_distribution_path, "knn_distributions.txt");
+	// 	if (output_path_ == nullptr || strlen(output_path_) == 0) {
+	// 		output_path = knn_distribution_path;
+	// 	} else {
+	// 		output_path = const_cast<char*>(output_path_);
+	// 	}
+    //     std::ofstream ofs(output_path);
+    //     if (!ofs.is_open()) {
+    //         std::cerr << "can not open file: " << output_path << std::endl;
+    //         exit(-1);
+    //     }
+    
+    //     for (int i = 0; i < this->groundtruth_dataset_size; ++i) {
+    //         for (int j = 0; j < this->num_leaf_node; ++j) {
+    //             ofs << this->knn_distributions[i][j];
+    //             if (j != this->num_leaf_node - 1) ofs << " ";
+    //         }
+    //         ofs << "\n";
+    //     }
+    
+    //     ofs.close();
+    //     std::cout << "写入完成：" << output_path << std::endl;
+    // }
+
+	void Hercules::writeKNNDistributionsToFile(unsigned int selected_k,const char* output_path_) {
 		char* output_path;
-		char * knn_distribution_path = static_cast<char *>(malloc(sizeof(char) * (strlen(this->index->index_setting->index_path_txt) + strlen("knn_distributions.txt"))));
-		knn_distribution_path = strcpy(knn_distribution_path, this->index->index_setting->index_path_txt);	
-		knn_distribution_path = strcat(knn_distribution_path, "knn_distributions.txt");
+	
+		// 为文件路径分配足够的空间，多预留 selected_k 数字的空间
+		size_t buffer_size = strlen(this->index->index_setting->index_path_txt) 
+						   + strlen("knn_distributions_k_.txt") 
+						   + 20; // 预留数字长度
+		char * knn_distribution_path = static_cast<char *>(malloc(sizeof(char) * buffer_size));
+	
+		// 拼接路径和文件名
+		sprintf(knn_distribution_path, "%sknn_distributions_k%d.txt", 
+				this->index->index_setting->index_path_txt, selected_k);
+	
 		if (output_path_ == nullptr || strlen(output_path_) == 0) {
 			output_path = knn_distribution_path;
 		} else {
 			output_path = const_cast<char*>(output_path_);
 		}
-        std::ofstream ofs(output_path);
-        if (!ofs.is_open()) {
-            std::cerr << "can not open file: " << output_path << std::endl;
-            exit(-1);
-        }
-    
-        for (int i = 0; i < this->groundtruth_dataset_size; ++i) {
-            for (int j = 0; j < this->num_leaf_node; ++j) {
-                ofs << this->knn_distributions[i][j];
-                if (j != this->num_leaf_node - 1) ofs << " ";
-            }
-            ofs << "\n";
-        }
-    
-        ofs.close();
-        std::cout << "写入完成：" << output_path << std::endl;
-    }
+	
+		std::ofstream ofs(output_path);
+		if (!ofs.is_open()) {
+			std::cerr << "can not open file: " << output_path << std::endl;
+			exit(-1);
+		}
+	
+		for (int i = 0; i < this->groundtruth_dataset_size; ++i) {
+			for (int j = 0; j < this->num_leaf_node; ++j) {
+				ofs << this->knn_distributions[i][j];
+				if (j != this->num_leaf_node - 1) ofs << " ";
+			}
+			ofs << "\n";
+		}
+	
+		ofs.close();
+		std::cout << "写入完成：" << output_path << std::endl;
+	
+		// 释放内存
+		if (output_path == knn_distribution_path) {
+			free(knn_distribution_path);
+		}
+	}
 
+	
 	void Hercules::generateAllFiles(){
 		
 		// 生成 base向量id到 叶子节点id的映射文件
        generate_ts_leaf_map_file();
 
+	   // top-k groundtruth----> leaf-id
        topk2LeafId();
        //  建立叶子节点id到下标的映射，变成连续的数组
        generateLeafId2IdxMap(); 
@@ -1112,7 +1156,11 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 	  //  generate_cluster_info_files();
 		// generate_cluster_info_files_corrected();
        // 生成标签
-       generate_label();
+       generate_label(1);
+	   generate_label(10);
+	   generate_label(20);
+	   generate_label(50);
+	   generate_label(100);
 
 	}
 

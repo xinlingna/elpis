@@ -133,14 +133,31 @@ $ ./Release/ELPIS \
 ./build/ELPIS \
 --dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_base.bin \
 --dataset-size 1000000 \
---query_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_learn.bin \
---query_dataset_size 500000 \
---groundtruth_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_learn_top100_groundtruth.bin \
---groundtruth_dataset_size 500000 \
---groundtruth_top_k 1 \
---index-path /home/xln/elpis/index/gist_learn_20K_top1/ \
+--query_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_query.bin \
+--query_dataset_size 1000 \
+--groundtruth_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_groundtruth.bin \
+--groundtruth_dataset_size 1000 \
+--groundtruth_top_k 100 \
+--index-path /home/xln/elpis/index/gist_query_20K_multK/ \
 --timeseries-size 960 \
 --leaf-size 20000 \
+--kb 16 \
+--Lb 400 \
+--mode 2
+```
+
+```shell
+./build/ELPIS \
+--dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_base.bin \
+--dataset-size 10000 \
+--query_dataset home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_query.bin \
+--query_dataset_size 100 \
+--groundtruth_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_learn_top100_groundtruth.bin \
+--groundtruth_dataset_size 100 \
+--groundtruth_top_k 100 \
+--index-path /home/xln/elpis/index/siftsmall_query_5H_multK/ \
+--timeseries-size 128 \
+--leaf-size 500\
 --kb 16 \
 --Lb 400 \
 --mode 2

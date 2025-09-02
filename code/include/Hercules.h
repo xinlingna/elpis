@@ -65,9 +65,9 @@ public:
     void writeTsLeafMapFile(const char* output_path_);
     void topk2LeafId(const char* output_path = nullptr);
     void leafContainsTopK(int selected_k);
-    void generate_label(const char* output_path = nullptr);
-    void calcKNNinLeaves();
-    void writeKNNDistributionsToFile(const char* output_path_);
+    void generate_label(unsigned int selected_k=100, const char* output_path = nullptr);
+    void calcKNNinLeaves(unsigned int selected_k);
+    void writeKNNDistributionsToFile(unsigned int selected_k,const char* output_path_=nullptr);
 
     // 写出叶子包含的向量数目，顺序与质心一致（leafId2Idx映射后的顺序）
     void write_leaf_sizes_file(const char* output_path_ = nullptr);
