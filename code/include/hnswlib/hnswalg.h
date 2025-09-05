@@ -168,8 +168,10 @@ namespace hnswlib {
 
 
         size_t label_offset_;
+    public:
         DISTFUNC<dist_t> fstdistfunc_;
         void *dist_func_param_;
+    public:
         std::unordered_map<labeltype, tableint> label_lookup_;
 
         std::default_random_engine level_generator_;

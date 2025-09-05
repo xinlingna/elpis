@@ -21,17 +21,17 @@ int main(int argc, char **argv) {
     static unsigned int leaf_size = 100;
     static double buffered_memory_size = 64.2;
     static int use_ascii_input = 0;
-    int ef = 10;
     static int mode = 1;
 
     static unsigned int k = 1;
     static unsigned int nprobes = 10;
-    bool parallel = true;
+    bool parallel = true;   // 默认并行
     static unsigned int nworker = 0;
     
     /* HNSW args */
     static int efConstruction = 500;
-    static int M = 4 ;
+    static int efSearch = 500;
+    static unsigned M = 4 ;
     static bool flatt = 0;
 
     static char *query_dataset = nullptr;
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     float zero_edge_pass_ratio = 0.0f; // ρ
 
     /* model para */
-    const char* model_file=nullptr;
+    char* model_file=nullptr;
 
     while (1) {
         static struct option long_options[] = {
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
                 }
                 break;
             case 'ef':
-                ef = atoi(optarg);
+                efSearch = atoi(optarg);
                 break;
 
             case 'mh':
@@ -316,9 +316,9 @@ int main(int argc, char **argv) {
                                                     groundtruth_dataset ,groundtruth_top_k, groundtruth_dataset_size,
                                                     learn_dataset, learn_dataset_size, learn_groundtruth_dataset,
                                                     dataset,
-                                                    index, ef, nprobes, parallel, nworker, flatt, k, ep, model_file, zero_edge_pass_ratio); 
+                                                    index, efSearch, nprobes, parallel, nworker, flatt, k, ep, model_file, zero_edge_pass_ratio); 
 
-        queryengine->TrainWeightByLearnDataset(ep, k, mode);
+        // queryengine->TrainWeightByLearnDataset(ep, k, mode);
 
         queryengine->queryBinaryFile(k, mode, thres_probability, μ, T);
         cout << "[Querying Time] "<< index->time_stats->querying_time <<"(sec)"<<endl;  
@@ -334,17 +334,46 @@ int main(int argc, char **argv) {
 
     }else if(mode==2){ 
 
-        Hercules * hercules= new Hercules(dataset,dataset_size,index_path, 
+        /* Hercules * hercules= new Hercules(dataset,dataset_size,index_path, 
                                         time_series_size, leaf_size,
                                         query_dataset, query_dataset_size,
 			                            groundtruth_dataset, groundtruth_dataset_size, groundtruth_top_k,
                                         efConstruction, M);
 
                                         
+
+                                        
        hercules->buildIndexTree();
 
-	   hercules->generateAllFiles();
+	   hercules->generateAllFiles(); */
+       
+       
+    }else if(mode==3){
+        // Index * index = Index::Read(index_path, mode); 
+        // QueryEngine * queryengine = new QueryEngine(query_dataset, query_dataset_size, 
+        //                                     groundtruth_dataset ,groundtruth_top_k, groundtruth_dataset_size,
+        //                                     learn_dataset, learn_dataset_size, learn_groundtruth_dataset,
+        //                                     dataset,
+        //                                     index, efSearch, nprobes, parallel, nworker, flatt, k, ep, model_file, zero_edge_pass_ratio); 
+
+        Hercules * hercules = new Hercules(
+            dataset, dataset_size,
+            query_dataset, query_dataset_size,
+            groundtruth_dataset, groundtruth_dataset_size, groundtruth_top_k,
+            learn_dataset, learn_dataset_size, learn_groundtruth_dataset,
+            index_path, time_series_size, leaf_size,
+            nprobes, parallel, nworker, flatt, // flatt是预留参数
+            efConstruction, M, efSearch, k, ep, // HNSW parameters
+            model_file, zero_edge_pass_ratio, μ, T, thres_probability,mode
+        );
+                        
+       hercules->buildIndexTree();
+
+	//    hercules->generateAllFiles();
+
+       hercules->TrainWeight();
        
     }
+
     return 0;
 }

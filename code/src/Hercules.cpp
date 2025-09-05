@@ -6,18 +6,42 @@
 #include <iomanip>
 #include <cstdint>
 #include <cstring>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <numeric>
+#include <limits>
 
 
-    Hercules::Hercules(char *dataset, int dataset_size, char *index_path, int timeseries_size, int leaf_size,
-			 char *query_dataset, int query_dataset_size,
-			 char *groundtruth_dataset, int groundtruth_dataset_size,int groundtruth_top_k, int construction, int m)
+    Hercules::Hercules(char *dataset, unsigned int dataset_size,
+			 char *query_dataset, unsigned int query_dataset_size,
+			 char *groundtruth_dataset, unsigned int groundtruth_dataset_size,unsigned int groundtruth_top_k, 
+			 char * learn_dataset, unsigned int learn_dataset_size, char * learn_groundtruth_dataset,
+			 char *index_path, unsigned int timeseries_size, unsigned int leaf_size,
+             unsigned int nprobes, bool parallel, unsigned int nworker, bool flatt,
+			 int efConstruction, unsigned int m, int efSearch, unsigned int k, unsigned int ep,
+			 char *model_file, float zero_edge_pass_ratio, float μ, float T, float thres_probability, int mode)
 	{
+		/* 
+		 * nprobes：搜索的叶子节点限制
+		 * parallel：是否使用并行
+		 * nworker：搜索叶子节点的工作线程数量
+		 * flatt：是否扁平化
+		 * construction：构建HNSW的参数
+		 * m：每个节点的最大连接数
+		 * k：查询时返回的最近邻数量
+		 * 
+		 * 
+		 * ep：训练权重轮次
+		 * zero_edge_pass_ratio：0边权通过比例
+		 */
 
 
+		// hercules tree param
 		this->index_path = index_path;
 		this->leaf_size=leaf_size;
 		this->timeseries_size = timeseries_size;
-		this->index = Index::initIndex(this->index_path, this->timeseries_size, 2048 * 1024, 1, this->leaf_size, construction, m); // 参数暂时不用
+		this->index = Index::initIndex(this->index_path, this->timeseries_size, 3072 * 1024, 1, this->leaf_size, efConstruction, m); // 参数暂时不用
 
 		// base dataset
 		this->dataset = dataset;
@@ -52,13 +76,48 @@
 			}
 		}
 
+
+		// edge weight param
+ 		this->mode=mode; 
+		this->query_dataset=query_dataset; // 检验权重训练的结果
+		this->query_dataset_size=query_dataset_size;
+		this->learn_dataset=learn_dataset; // 训练权重
+		this->learn_dataset_size=learn_dataset_size;
+		this->learn_groundtruth_dataset=learn_groundtruth_dataset;
+
+		this->nprobes=nprobes;
+		this->parallel=parallel;
+		this->nworker=nworker;
+		this->flatt=flatt;
+		this->k=k;
+		this->efSearch=efSearch;
+		this->ep=ep;
+		this->model_file=model_file;
+		this->zero_edge_pass_ratio=zero_edge_pass_ratio;
+		this->μ=μ;
+		this->T=T;
+		this->thres_probability=thres_probability;
+
+		// learn_groundtruth_list
+		if (learn_groundtruth_dataset != nullptr && learn_dataset_size > 0)
+		{
+			this->learn_groundtruth_list = new int *[this->learn_dataset_size];
+
+			std::ifstream learn_groundtruth_in(this->learn_groundtruth_dataset, std::ios::binary);
+			for (int i = 0; i < this->learn_dataset_size; i++)
+			{
+				this->learn_groundtruth_list[i] = new int[this->groundtruth_top_k];
+				learn_groundtruth_in.read(reinterpret_cast<char *>(this->learn_groundtruth_list[i]), this->groundtruth_top_k * sizeof(int));
+			}
+		}
+
 	}
 
 	/* ******************************* 建立索引树 保存hercules tree and graph************************************** */
     void Hercules::buildIndexTree()
 	{
 		this->index->buildIndexFromBinaryData(this->dataset, this->dataset_size);
-		this->index->write(); // write hercules tree
+		// this->index->write(); // write hercules tree +HNSW of leaf node
 		this->num_leaf_node = this->index->first_node->num_leaf_node;
 		cout<<"Number of leaf nodes: "<<this->num_leaf_node<<endl;
 		cout<<"Number of internal nodes: "<<this->index->first_node->num_internal_node<<endl;
@@ -174,118 +233,6 @@
 	}
 
 
-	/* **********************生成叶子节点质心，并按照映射生成最终的二维质心数组***************************** */
-/* 	void Hercules::generate_leaf_centroids(const char* output_path, const char* generate_way){
-
-		// 所有叶节点的质心
-		if (this->num_leaf_node <= 0) {
-			std::cerr << "Error: num_leaf_node is not set or is zero." << std::endl;
-			return;
-		}
-
-		leaf_centroid* centroids_temp=(leaf_centroid*)malloc_index(sizeof(leaf_centroid) * this->num_leaf_node);
-		for (int i = 0; i < this->num_leaf_node; i++) {
-			Node *leaf = this->leaves[i]; 
-			int rec_vecs_number = leaf->file_buffer->buffered_list_size + leaf->file_buffer->disk_count; // 获取叶子包含的向量数目
-			centroids_temp[i].ts_centroid = static_cast<ts_type *>(malloc_index(sizeof(ts_type) * this->timeseries_size));
-			centroids_temp[i].leaf_centroid_index = static_cast<file_position_type *>(malloc_index(sizeof(file_position_type)));
-			memset(centroids_temp[i].ts_centroid, 0, sizeof(ts_type) * this->timeseries_size);  // 初始化为0
-			*(centroids_temp[i].leaf_centroid_index) = leaf->id; // 将叶子节点的id存入质心索引
-
-			VectorWithIndex *rec = leaf->getTS(index);
-			if (rec == nullptr) {
-				std::cerr << "Error: Failed to get time series from leaf node." << std::endl;
-				exit(-1);
-			}
-
-			// 遍历每个点，计算到所有其他点的距离，并选择最小的点
-			if(strcmp(generate_way, "Center") == 0){ 
-				file_position_type center_index=0;
-				double min_distance = numeric_limits<double>::infinity();  // 最小距离初始化为无穷大
-                for (int j = 0; j < rec_vecs_number; j++) {
-                    double total_distance = 0.0;
-                    for (int k = 0; k < rec_vecs_number; k++) {
-                        if (j != k) {
-                         // 计算 rec_vecs[j] 到 rec_vecs[k] 的欧氏距离
-                         total_distance += euclideanDistance(rec[j].ts, rec[k].ts,this->timeseries_size);
-                        }
-                    }
-
-                    // 记录当前点的总距离，选择总距离最小的点作为中心
-                    if (total_distance < min_distance) {
-                        min_distance = total_distance;
-                        center_index = j;
-                    }
-                }
-				for(int j=0;j<this->timeseries_size;j++){
-				   centroids_temp[i].ts_centroid[j]=rec[center_index].ts[j];
-				}
-
-			}else if(strcmp(generate_way, "Centroid") == 0){ // 质心
-			    for (int j = 0; j < rec_vecs_number; j++) {
-			    	for (int k = 0; k < this->timeseries_size; k++) {
-			    		centroids_temp[i].ts_centroid[k] += rec[j].ts[k];
-			    	}
-			    }
-    
-			    for (int k = 0; k < this->timeseries_size; k++) {
-			    	centroids_temp[i].ts_centroid[k] /= rec_vecs_number;
-			    }
-			}
-
-			for (int j = 0; j < rec_vecs_number; j++) {
-                free(rec[j].ts);
-                free(rec[j].ts_index);
-            }
-			free(rec);
-		}
-		// 将质心位置映射和label一致
-		this->centroids = static_cast<leaf_centroid *>(malloc_index(sizeof(leaf_centroid) * this->num_leaf_node));
-		for(int i = 0; i < this->num_leaf_node; i++) {
-			this->centroids[i].ts_centroid = static_cast<ts_type *>(malloc_index(sizeof(ts_type) * this->timeseries_size));
-			this->centroids[i].leaf_centroid_index = static_cast<file_position_type *>(malloc_index(sizeof(file_position_type)));
-			*(this->centroids[i].leaf_centroid_index) = 0; // 初始化为0，后续会被覆盖
-		}
-
-		for(int i = 0; i < this->num_leaf_node; i++) {
-			int idx_leaf=*(centroids_temp[i].leaf_centroid_index);
-			int idx = this->leafId2Idx[idx_leaf];
-			for(int j=0;j<this->timeseries_size;j++){
-				this->centroids[idx].ts_centroid[j] = centroids_temp[i].ts_centroid[j];
-			}
-			*(this->centroids[idx].leaf_centroid_index) = *(centroids_temp[i].leaf_centroid_index);
-		}
-
-		// 写入质心到文件
-		char *leaf_centroids_path = static_cast<char *>(malloc_index(sizeof(char) * (strlen(this->index->index_setting->index_path_hnsw) + strlen("leaf_")+strlen(generate_way)+strlen(".txt")+1)));
-		leaf_centroids_path = strcpy(leaf_centroids_path, this->index->index_setting->index_path_hnsw);
-		leaf_centroids_path = strcat(leaf_centroids_path, "leaf_");
-		leaf_centroids_path = strcat(leaf_centroids_path, generate_way);
-		leaf_centroids_path = strcat(leaf_centroids_path, ".txt");
-		
-		char* output_file = (output_path == nullptr || strlen(output_path) == 0) ? leaf_centroids_path : const_cast<char*>(output_path);
-		std::ofstream ofs(output_file);
-		if (!ofs.is_open()) {
-			std::cerr << "can not open file: " << output_file << std::endl;
-			exit(-1);
-		}
-		// 按照label中叶子节点的顺序将质心写入文件
-		for (int i = 0; i < this->num_leaf_node; i++) { // leafId2Idx[leaf->id]
-			// ofs << "Leaf Node ID: " << *(this->centroids[i].leaf_centroid_index) << "\n";
-			for (int j = 0; j < this->timeseries_size; j++) {
-				ofs << std::fixed << this->centroids[i].ts_centroid[j];
-				if (j != this->timeseries_size - 1) ofs << " ";
-			}
-			ofs << "\n";
-		}
-		std::cout << "Leaf centroids have been written to " << output_file << std::endl;
-		free(leaf_centroids_path);
-		for (int i = 0; i < this->num_leaf_node; i++) {
-			free(centroids_temp[i].ts_centroid);
-			free(centroids_temp[i].leaf_centroid_index);
-		}
-		free(centroids_temp);
-	} */
     void Hercules::write_centroid_file(const char* method, leaf_centroid* centroids) {
 	char path_buf[1024];
 	snprintf(path_buf, sizeof(path_buf), "%sleaf_%s.txt", this->index->index_setting->index_path_txt, method);
@@ -307,7 +254,7 @@
 	std::cout << "Leaf centroids (" << method << ") written to " << path_buf << std::endl;
 }
 
-void Hercules::generate_cluster_info_files(const char* output_path, int num_representatives) {
+    void Hercules::generate_cluster_info_files(const char* output_path, int num_representatives) {
 	if (this->num_leaf_node <= 0) {
 		std::cerr << "Error: num_leaf_node is not set or is zero." << std::endl;
 		return;
@@ -477,8 +424,8 @@ void Hercules::generate_cluster_info_files(const char* output_path, int num_repr
 
 }
 
-// 修正后的聚类信息生成函数（不包含representative_vectors）
-void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
+    // 修正后的聚类信息生成函数（不包含representative_vectors）
+    void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 	if (this->num_leaf_node <= 0) {
 		std::cerr << "Error: num_leaf_node is not set or is zero." << std::endl;
 		return;
@@ -994,7 +941,7 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 	}
 
 
-	/* ******************************* 生成标签************************************** */
+	/* ******************************* 生成标签 knn_distribution************************************** */
 	void Hercules::generate_label(unsigned int selected_k, const char* output_path){
 		calcKNNinLeaves(selected_k);
 		writeKNNDistributionsToFile(selected_k,output_path);
@@ -1060,35 +1007,90 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 		}
 	}
 
+    void Hercules::TrainWeight(){
+		/* learn_dataset训练权重 */
 
-    // void Hercules::writeKNNDistributionsToFile(const char* output_path_, unsigned int selected_k) {
+		this->fillTsLeafMap();
+		this->getCandidateLeafNode(100);
 
-	// 	char* output_path;
-	// 	char * knn_distribution_path = static_cast<char *>(malloc(sizeof(char) * (strlen(this->index->index_setting->index_path_txt) + strlen("knn_distributions.txt"))));
-	// 	knn_distribution_path = strcpy(knn_distribution_path, this->index->index_setting->index_path_txt);	
-	// 	knn_distribution_path = strcat(knn_distribution_path, "knn_distributions.txt");
-	// 	if (output_path_ == nullptr || strlen(output_path_) == 0) {
-	// 		output_path = knn_distribution_path;
-	// 	} else {
-	// 		output_path = const_cast<char*>(output_path_);
-	// 	}
-    //     std::ofstream ofs(output_path);
-    //     if (!ofs.is_open()) {
-    //         std::cerr << "can not open file: " << output_path << std::endl;
-    //         exit(-1);
-    //     }
-    
-    //     for (int i = 0; i < this->groundtruth_dataset_size; ++i) {
-    //         for (int j = 0; j < this->num_leaf_node; ++j) {
-    //             ofs << this->knn_distributions[i][j];
-    //             if (j != this->num_leaf_node - 1) ofs << " ";
-    //         }
-    //         ofs << "\n";
-    //     }
-    
-    //     ofs.close();
-    //     std::cout << "写入完成：" << output_path << std::endl;
-    // }
+		// this->index->first_node->num_leaf_node = 0;
+		// this->index->first_node->num_internal_node = 0;
+		// this->index = Index::Read(this->index_path, 1); 
+
+        this->queryengine = new QueryEngine(this->query_dataset, this->query_dataset_size, 
+                                            this->groundtruth_dataset , this->groundtruth_top_k, this->groundtruth_dataset_size, 
+                                            this->learn_dataset, this->learn_dataset_size, this->learn_groundtruth_dataset,
+                                            this->dataset, 
+											this->index, this->efSearch, this->nprobes, this->parallel, 
+											this->nworker, this->flatt, this->k, this->ep, 
+											this->model_file, this->zero_edge_pass_ratio);
+		// this->leafNodeID2Node();
+		this->searchCandidateLeafNode();
+
+		this->queryengine->queryBinaryFile(this->k, this->mode, this->thres_probability, this->μ, this->T);
+		this->index->write(); // write hercules tree +HNSW of leaf node
+	}
+
+	
+	void Hercules::getCandidateLeafNode(unsigned int selected_k){
+		/**
+		 * 如果一个查询向量的top-k在某个叶子中，那么这个叶子就是候选叶子，记住该叶子节点。如果一个查询向量的top-k不在某个叶子中，那么这个叶子就是非候选叶子，无需记录在candidate_leaf_node中
+		 * 每个查询向量的候选叶子节点保存到candidate_leaf_node中
+		 * candidate_leaf_node[i][j]表示第i个查询向量的第j个候选叶子节点的id
+		 * 每个candidate_leaf_node[i]包含的候选叶子的数目不一样
+		 */
+        this->candidate_leaf_node.clear();                     // 可选：先清空旧内容
+        this->candidate_leaf_node.resize(this->learn_dataset_size);
+		selected_k=std::min<unsigned int>(selected_k,this->groundtruth_top_k);
+		for (size_t i = 0; i < this->learn_dataset_size; i++)
+		{
+			for (size_t j = 0; j < selected_k; j++)
+			{
+				int ts_key = this->learn_groundtruth_list[i][j];
+				if (ts_key >= this->learn_dataset_size || ts_key < 0) {
+					cout << "ts_key=" << ts_key << "is not between[0," << this->learn_dataset_size << "]" << endl;
+					exit(-1);
+				}
+
+				auto it = this->ts_leaf_map.find(ts_key);
+				Node *leaf = nullptr;
+				if (it != this->ts_leaf_map.end()) {
+					leaf = it->second;
+					if (leaf == nullptr) {
+						std::cerr << "Error: Node* for key " << ts_key << " is nullptr!" << std::endl;
+						exit(-1);
+					}
+				}
+				else {
+					std::cerr << "Error: Key not found: " << ts_key << std::endl;
+					exit(-1);
+				}
+				// 将该叶子节点id插入到candidate_leaf_node[i]中
+				this->candidate_leaf_node[i].insert(leaf);
+			}
+		}
+	}
+
+	void Hercules::leafNodeID2Node(){
+		/*
+		* 将叶子节点ID映射到 节点
+		*/
+		for (int i = 0; i < this->num_leaf_node; i++)
+		{
+			Node* leaf = this->leaves[i];
+			int leaf_id = leaf->id;
+			this->leafNode2GraphMap[leaf_id] = leaf;
+		}
+	}
+
+	void Hercules::searchCandidateLeafNode(){
+		/*
+		* 对于每个查询向量，搜索所有candidate leaf node
+		* 对该候选叶子节点进行边权训练
+		*/
+		this->queryengine->TrainWeightByLearnDataset(this->queryengine->ep, this->queryengine->k , this->candidate_leaf_node);
+
+	}
 
 	void Hercules::writeKNNDistributionsToFile(unsigned int selected_k,const char* output_path_) {
 		char* output_path;
@@ -1136,12 +1138,12 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
 	void Hercules::generateAllFiles(){
 		
 		// 生成 base向量id到 叶子节点id的映射文件
-       generate_ts_leaf_map_file();
+       this->generate_ts_leaf_map_file();
 
 	   // top-k groundtruth----> leaf-id
-       topk2LeafId();
+       this->topk2LeafId();
        //  建立叶子节点id到下标的映射，变成连续的数组
-       generateLeafId2IdxMap(); 
+       this->generateLeafId2IdxMap();
        //    hercules->leafContainsTopK(20);
        //    hercules->leafContainsTopK(10);
        //    hercules->leafContainsTopK(30);
@@ -1149,18 +1151,18 @@ void Hercules::generate_cluster_info_files_corrected(const char* output_path) {
        //    hercules->leafContainsTopK(100);
 
         // 生成叶子节点文件以及质心文件
-       generate_leafnode_file();
-       generate_leaf_centroids();
-	   write_leaf_sizes_file();
+       this->generate_leafnode_file();
+       this->generate_leaf_centroids();
+	   this->write_leaf_sizes_file();
 	  // 生成每个叶子的聚类信息（与质心顺序一致）
 	  //  generate_cluster_info_files();
 		// generate_cluster_info_files_corrected();
        // 生成标签
-       generate_label(1);
-	   generate_label(10);
-	   generate_label(20);
-	   generate_label(50);
-	   generate_label(100);
+       this->generate_label(1);
+	   this->generate_label(10);
+	   this->generate_label(20);
+	   this->generate_label(50);
+	   this->generate_label(100);
 
 	}
 

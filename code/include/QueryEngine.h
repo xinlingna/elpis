@@ -12,6 +12,7 @@
 #include "hnswlib/hnswlib.h"
 #include "pqueue.h"
 #include <queue>
+#include <set>
 #include "future"
 
 typedef struct query_result query_result;
@@ -54,6 +55,7 @@ public :
     const char* learn_groundtruth_dataset;
 
     const char * model_file;
+    std::vector<std::set<Node*>> candidate_leaf_node;
     float zero_edge_pass_ratio; // ρ: 权重为0的边按该概率放行
 
 
@@ -106,8 +108,8 @@ public :
                 std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> & top_candidates,
                 float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit);
 
-    void TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned int k, int mode);
-    void TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, IterRefinement_epoch ep);
+    void TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned int k, std::vector<std::set<Node*>>   candidate_leaf_node);
+    void TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, IterRefinement_epoch ep, std::set<Node*> candidate_leaf);
 
     void TrainWeightinGraphLeaf(Node * node,const void *query_data, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,

@@ -4,12 +4,14 @@
 #include "Index.h"
 #include "Node.h"
 #include "file_utils.h"
+#include "QueryEngine.h"
 #include <unordered_map>
 #include <vector>
 #include <fstream>
 #include <cstring>
 #include <sstream>
 #include <iomanip>
+#include <set>
 
 class Hercules
 {
@@ -29,14 +31,16 @@ public:
     VectorWithIndex *ts_list;
 
     char *groundtruth_dataset;
-    int groundtruth_dataset_size;
+    unsigned int groundtruth_dataset_size;
     int **groundtruth_list; // Assuming groundtruth is a list of indices or similar
-    int groundtruth_top_k;
+    unsigned int groundtruth_top_k;
+    int **learn_groundtruth_list;
 
     int timeseries_size;
     char *index_path;
     file_position_type **knn_distributions;
     file_position_type **knn_groundtruth;
+
 
     leaf_centroid *centroids_centroids;
     leaf_centroid *centroids_center;
@@ -44,10 +48,20 @@ public:
     const char* statistics_path = "/home/xln/elpis/data/statistics/";
 
     // Constructor
-    Hercules(char *dataset, int dataset_size, char *index_path, int timeseries_size, int leaf_size,
+/*     Hercules(char *dataset, int dataset_size,
              char *query_dataset, int query_dataset_size,
              char *groundtruth_dataset, int groundtruth_dataset_size, int groundtruth_top_k,
-            int construction, int m);
+             char *learn_dataset, int learn_dataset_size, char* learn_groundtruth_dataset,
+             char *index_path, int timeseries_size, int leaf_size,
+            int construction, int m, int mode); */
+    Hercules(char *dataset, unsigned int dataset_size,
+			 char *query_dataset, unsigned int query_dataset_size,
+			 char *groundtruth_dataset, unsigned int groundtruth_dataset_size,unsigned int groundtruth_top_k, 
+			 char * learn_dataset, unsigned int learn_dataset_size, char * learn_groundtruth_dataset,
+			 char *index_path, unsigned int timeseries_size, unsigned int leaf_size,
+             unsigned int nprobes, bool parallel, unsigned int nworker, bool flatt,
+			 int efConstruction, unsigned int m, int efSearch, unsigned int k, unsigned int ep,
+			 char *model_file, float zero_edge_pass_ratio, float μ, float T, float thres_probability,int mode);
 
     // Function declarations
     void buildIndexTree();
@@ -68,6 +82,38 @@ public:
     void generate_label(unsigned int selected_k=100, const char* output_path = nullptr);
     void calcKNNinLeaves(unsigned int selected_k);
     void writeKNNDistributionsToFile(unsigned int selected_k,const char* output_path_=nullptr);
+
+    // edge weight
+
+    // Index * index;
+    int mode; 
+    int efSearch;
+    unsigned int nprobes;
+    bool parallel;
+    unsigned int nworker;
+    bool flatt;
+    unsigned int k; // top-k
+    unsigned int ep; // epoch
+    float thres_probability; 
+    float μ;
+    float T;
+
+
+    char * model_file;
+    float zero_edge_pass_ratio;
+
+    char * query_dataset;  unsigned int query_dataset_size;
+    char * learn_dataset;  unsigned int learn_dataset_size;
+    char * learn_groundtruth_dataset;
+
+    QueryEngine *queryengine;
+
+    std::vector<std::set<Node*>> candidate_leaf_node;   // candidate leaf nodes per query
+    std::unordered_map<int, Node*> leafNode2GraphMap; // map leafnode->id to graph
+    void TrainWeight();
+    void getCandidateLeafNode(unsigned int selected_k);
+    void searchCandidateLeafNode();
+    void leafNodeID2Node();
 
     // 写出叶子包含的向量数目，顺序与质心一致（leafId2Idx映射后的顺序）
     void write_leaf_sizes_file(const char* output_path_ = nullptr);

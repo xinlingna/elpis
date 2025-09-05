@@ -21,6 +21,10 @@ Node::~Node() {
             delete leafgraph;
             leafgraph = nullptr;  // 可选，防止悬空指针
         }
+        if (hnswmetric != nullptr) {
+            delete hnswmetric;
+            hnswmetric = nullptr;  // 防止悬空指针
+        }
         // delete filename;
         if (this->filename != nullptr) {
             free(this->filename);
@@ -41,6 +45,7 @@ Node::~Node() {
 Node::Node(Index *index, FILE *file, Node * parent, int mode) {
 
     leafgraph = nullptr;
+    // hnswmetric = nullptr;  ///////////////////////////////////////////////////////////
 
     fread(&is_leaf, sizeof(unsigned char), 1, file);
     fread(&(this->node_size), sizeof(unsigned int), 1, file);
@@ -183,7 +188,7 @@ void Node::leafToGraph(Index *index) {
 
             // 获取当前节点的缓冲区（buffer）文件的完整文件路径名
             char *leafgraph_full_filename = this->getLeafGraphFullFileName(index); 
-            cout<<"leafgraph_full_filename"<<leafgraph_full_filename<<endl;
+            cout<<"leafgraph_full_filename:"<<leafgraph_full_filename<<endl;
 
             this->hnswmetric = new hnswlib::L2Space(index->index_setting->timeseries_size);
 
@@ -199,7 +204,8 @@ void Node::leafToGraph(Index *index) {
 
 
             appr_alg->initialEdgeWeight();
-            appr_alg->saveIndex(leafgraph_full_filename);
+            // appr_alg->saveIndex(leafgraph_full_filename);
+            this->leafgraph = appr_alg; // 保存图索引到内存中供后续使用
             this->is_hnswed = true;
             cout << "[Graphing] Leaf " << this->filename << " has been graph-structured in " << leafgraph_full_filename << endl;
 
@@ -210,8 +216,9 @@ void Node::leafToGraph(Index *index) {
             }
             free(rec);
 
-            delete appr_alg;
-            delete hnswmetric;
+            // 重要修复：不删除hnswmetric，因为leafgraph需要使用它进行距离计算
+            // this->hnswmetric会在Node析构时删除
+            // delete hnswmetric;  // 注释掉这行！
 
             free(leafgraph_full_filename);
         } else {
@@ -555,6 +562,7 @@ Node::Node() {
     this->left_child = nullptr;
     this->parent = nullptr;
     leafgraph = nullptr;
+    hnswmetric = nullptr;
     this->node_segment_split_policies = nullptr;
     this->num_node_segment_split_policies = 2;
 
@@ -1083,6 +1091,13 @@ void Node::write(Index *index, FILE *file) {
 
     if (this->is_leaf) {
 
+        char *leafgraph_full_filename = this->getLeafGraphFullFileName(index); 
+        cout<<"leafgraph_full_filename:"<<leafgraph_full_filename<<endl;
+
+        this->leafgraph->saveIndex(leafgraph_full_filename);
+        free(leafgraph_full_filename);
+        cout<<"[Save Leaf Graph]  id : " << this->id << " | size : " << this->node_size << endl;
+
         if (this->filename != nullptr) {
             printf("[Save Leaf]  id : %li | size : %i\n",num_leaf_node++, this->node_size);
             std::cout << "filename: " << this->filename << std::endl;
@@ -1090,12 +1105,10 @@ void Node::write(Index *index, FILE *file) {
             fwrite(&filename_size, sizeof(int), 1, file);
             fwrite(this->filename, sizeof(char), filename_size, file);
 
-
             fwrite(&(this->num_node_points), sizeof(short), 1, file);
             fwrite(this->node_points, sizeof(short), this->num_node_points, file);
 
             for (int i = 0; i < this->num_node_points; ++i) {
-
                 fwrite(&(this->node_segment_sketches[i].num_indicators),
                        sizeof(int),
                        1,

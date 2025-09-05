@@ -8,8 +8,7 @@
  <center><h3>Init Index => Setting and BufferManager and root node</h3>
  */
 Index * Index::initIndex(char *path, unsigned int size, double size1, unsigned int segments, unsigned int size2,
-                         int construction,
-                         int m) {
+                         int construction, int m) {
 
     return new Index(path, size, size1, segments, size2, construction, m);
 
@@ -20,7 +19,7 @@ Index::Index(char *index_path, unsigned int timeseries_size, double buffered_mem
     this->time_stats = new timelapse ;
     this->time_stats->index_building_time = 0;
     this->time_stats->querying_time = 0;
-    in_memory = 0;
+    this->in_memory = 0;
     if(chdir(index_path) == 0){
         cout<<"The index folder is already existing"<<index_path<< endl;
         deleteDirectory(index_path);
@@ -379,7 +378,7 @@ bool Index::insertTS(VectorWithIndex* vwi )  {
 
             // we create node->split_policy for the choosen split policy
             node->split_policy = nullptr;
-            node->split_policy = static_cast<node_split_policy *>(malloc(sizeof(struct node_split_policy)));
+            node->split_policy = static_cast<node_split_policy *>(calloc(1, sizeof(struct node_split_policy)));
             if (node->split_policy == nullptr) {
                 cerr <<"Error in Index.cpp: could not allocate memory \
                         for the split policy of node  "<< node->filename<<endl;
@@ -590,6 +589,8 @@ Index *Index::Read(char *path, unsigned int mode) {
     return new Index(path, mode);
 }
 
+
+/* load inde from root_directory */
 Index::Index(char *root_directory, unsigned int mode) {
     this->in_memory = mode-1;
     this->time_stats = new timelapse ;

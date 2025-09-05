@@ -227,3 +227,51 @@ $ ./Release/ELPIS \
   --mode 2
 
 ```
+
+
+
+### train weight
+'''shell
+./build/ELPIS \
+    --mode 3 \
+    --index-path /home/xln/elpis/index/gist_learn_20k \
+    --dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_base.bin \
+    --dataset-size 1000000 \
+    --query_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_query.bin \
+    --query_dataset_size 1000 \
+    --groundtruth_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_groundtruth.bin \
+    --groundtruth_dataset_size 1000 \
+    --groundtruth_top_k 100 \
+    --learn_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_learn.bin \
+    --learn_dataset_size 500000 \
+    --learn_groundtruth_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_learn_top100_groundtruth.bin \
+    --leaf-size 20000 \
+    --timeseries-size 960 \
+    --Lb 400 \
+    --kb 16 \
+    --L 10 \
+    --k 1 \
+    --ep 20
+
+
+./build/ELPIS \
+    --mode 3 \
+    --index-path /home/xln/elpis/index/siftsmall_learn_5H/ \
+    --dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_base.bin \
+    --dataset-size 10000 \
+    --query_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_query.bin \
+    --query_dataset_size 100 \
+    --groundtruth_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_groundtruth.bin \
+    --groundtruth_dataset_size 100 \
+    --groundtruth_top_k 100 \
+    --learn_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_learn.bin \
+    --learn_dataset_size 25000 \
+    --learn_groundtruth_dataset /home/xln/elpis/data/real/siftsmall/sift10K/bin/siftsmall_learn_top100_groundtruth.bin \
+    --leaf-size 500 \
+    --timeseries-size 128 \
+    --Lb 400 \
+    --kb 16 \
+    --L 10 \
+    --k 1 \
+    --ep 20
+'''
