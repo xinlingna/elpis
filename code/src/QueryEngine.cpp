@@ -2145,7 +2145,6 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
                     // for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
                     for (int i = 0; i < candidates_count; i++) {    
                         node = candidates[i];
-                    #pragma omp critical
                         TrainWeightinGraphLeaf(node, query_ts,  k, *(worker->top_candidates), worker->bsf,
                                          *(worker->stats), worker->flags, worker->curr_flag, ep_index, groundtruth_id);
                     }
