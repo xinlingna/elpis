@@ -10,7 +10,6 @@
 #include<set>
 #include "QueryEngine.h"
 #include "grasp_mu_bisect.h"
-#include <tbb/concurrent_unordered_map.h>
 QueryEngine::~QueryEngine() {
     // if (pq) pqueue_free(pq);  // 释放pq发生段错误，不释放内存泄漏
     // if(results) free(results);
@@ -1395,8 +1394,7 @@ void QueryEngine::searchflatWithHopPath(
     float LBGRAPH;
 
     // 记录父子关系以回溯 hop path
-    //std::unordered_map<unsigned int, unsigned int> parent_map;
-    tbb::concurrent_unordered_map<unsigned int, unsigned int> parent_map;
+    std::unordered_map<unsigned int, unsigned int> parent_map;
 
     // ---- 初始化：仅维护 internalID 堆 ----
     float dist = g->fstdistfunc_(data_point, g->getDataByInternalId(entrypoint), g->dist_func_param_);
