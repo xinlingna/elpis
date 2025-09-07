@@ -10,7 +10,7 @@
 #include<set>
 #include "QueryEngine.h"
 #include "grasp_mu_bisect.h"
-#include <tbb/concurrent_unordered_map.h>
+// #include <tbb/concurrent_unordered_map.h>
 QueryEngine::~QueryEngine() {
     // if (pq) pqueue_free(pq);  // 释放pq发生段错误，不释放内存泄漏
     // if(results) free(results);
@@ -163,8 +163,9 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
                                               cmp_pri, get_pri, set_pri, get_pos, set_pos);
 
 
-        // this->nworker = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
-        this->nworker = 1;
+        this->nworker = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
+
+        // this->nworker = 1;
         if(this->nworker>nprobes-1)this->nworker = nprobes-1;
         this->qwdata = static_cast<worker_backpack__ *>(malloc(sizeof(worker_backpack__) * this->nworker));
 
@@ -1395,8 +1396,8 @@ void QueryEngine::searchflatWithHopPath(
     float LBGRAPH;
 
     // 记录父子关系以回溯 hop path
-    //std::unordered_map<unsigned int, unsigned int> parent_map;
-    tbb::concurrent_unordered_map<unsigned int, unsigned int> parent_map;
+    std::unordered_map<unsigned int, unsigned int> parent_map;
+    // tbb::concurrent_unordered_map<unsigned int, unsigned int> parent_map;
 
     // ---- 初始化：仅维护 internalID 堆 ----
     float dist = g->fstdistfunc_(data_point, g->getDataByInternalId(entrypoint), g->dist_func_param_);
@@ -1556,24 +1557,39 @@ void QueryEngine::updateWeightByHopPath( Node *node, const void *data_point,
     float dist1 = g->fstdistfunc_(data_point, g->getDataByInternalId(top1), g->dist_func_param_);
 
 
+    // NOTE: Previous implementation allocated a fresh 512-byte buffer (timeseries_size*4) per call
+    // via malloc_search and leaked in older builds (no free on early returns / exceptions) leading
+    // to large definite losses in Valgrind. We switch to a reusable thread_local buffer to avoid
+    // per-call malloc/free entirely and make the function exception safe.
+    const int dim = this->index->index_setting->timeseries_size;
+    if (groundtruth_id == nullptr) return; // nothing to compare
+    int gt_id = groundtruth_id[0];
+    if (gt_id < 0) return;
+
+    static thread_local std::vector<ts_type> gt_buffer;
+    if ((int)gt_buffer.size() != dim) gt_buffer.resize(dim);
+
     FILE *dataset_file = fopen(this->dataset, "rb");
     if (dataset_file == nullptr) {
-        fprintf(stderr, "Dataset file %s not found!\n", this->dataset);
-        exit(-1);
+        fprintf(stderr, "Dataset file %s not found! (skip weight update)\n", this->dataset);
+        return; // graceful degradation instead of exit
     }
-    // 根据groundtruth_id[0]找到对应的向量
-    fseek(dataset_file, groundtruth_id[0] * this->index->index_setting->timeseries_size * sizeof(ts_type), SEEK_SET);
-    ts_type *top1_vector = static_cast<ts_type *>(malloc_search(sizeof(ts_type) * this->index->index_setting->timeseries_size));
-    fread(top1_vector, sizeof(ts_type), this->index->index_setting->timeseries_size, dataset_file);
-    
-    float top1_distance = 0;
-    // 计算top1向量与query_ts的欧几里得距离
-    const ts_type* q = static_cast<const ts_type*>(data_point);
-    for (int i = 0; i < this->index->index_setting->timeseries_size; i++) {
-        top1_distance += (q[i] - top1_vector[i]) * (q[i] - top1_vector[i]);
+    // Seek & read groundtruth vector
+    if (fseek(dataset_file, (long)gt_id * dim * sizeof(ts_type), SEEK_SET) != 0) {
+        fclose(dataset_file);
+        return; // seek error, skip update
     }
-    // cout<<"top1_distance:"<<top1_distance<<endl;
+    size_t read_cnt = fread(gt_buffer.data(), sizeof(ts_type), dim, dataset_file);
     fclose(dataset_file);
+    if (read_cnt != (size_t)dim) return; // failed read, skip
+
+    float top1_distance = 0.0f;
+    const ts_type* q = static_cast<const ts_type*>(data_point);
+    for (int i = 0; i < dim; i++) {
+        float diff = (float)q[i] - (float)gt_buffer[i];
+        top1_distance += diff * diff;
+    }
+    if (top1_distance <= 1e-12f) return; // avoid divide-by-zero below
 
     // 计算dist1与top1_distance的差距，差距越小，权重更新越大
     float diff_ratio = std::fabs(dist1 - top1_distance) / top1_distance;

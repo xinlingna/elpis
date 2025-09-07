@@ -124,6 +124,12 @@ void Index::buildIndexFromBinaryData(char* dataset, file_position_type dataset_s
             nodes[j]->leafToGraph(this);
     }
 
+    // Free temporary nodes array (fixes Valgrind leak: Node::num_leaf_node * sizeof(Node*))
+    if(nodes){
+        free(nodes);
+        nodes = nullptr;
+    }
+
     // 释放内存 mode !=2 取消注释
     // for(int j =0; j<i;j++)
     //     nodes[j]->deleteFileBuffer(this);

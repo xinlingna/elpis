@@ -396,6 +396,8 @@ int main(int argc, char **argv) {
 	//    hercules->generateAllFiles();
 
        hercules->TrainWeight();
+       // Release Hercules to avoid Valgrind reported leak (direct + indirect allocations)
+       delete hercules;
        
     }
 
