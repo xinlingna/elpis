@@ -5,3 +5,644 @@
 ==574737== Parent PID: 289490
 ==574737== 
 ==574737== Warning: set address range perms: large range [0x59c93040, 0x113b9f040) (defined)
+==574737== Conditional jump or move depends on uninitialised value(s)
+==574737==    at 0x155DBC: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::reserve(unsigned long) (vector.tcc:72)
+==574737==    by 0x14DDB8: QueryEngine::QueryEngine(char const*, unsigned int, char const*, unsigned int, unsigned int, char const*, unsigned int, char const*, char const*, Index*, int, unsigned int, bool, unsigned int, bool, unsigned int, unsigned int, char const*, float) (QueryEngine.cpp:177)
+==574737==    by 0x118E6F: Hercules::TrainWeight() (Hercules.cpp:1027)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737==  Uninitialised value was created by a heap allocation
+==574737==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x14DCB7: QueryEngine::QueryEngine(char const*, unsigned int, char const*, unsigned int, unsigned int, char const*, unsigned int, char const*, char const*, Index*, int, unsigned int, bool, unsigned int, bool, unsigned int, unsigned int, char const*, float) (QueryEngine.cpp:170)
+==574737==    by 0x118E6F: Hercules::TrainWeight() (Hercules.cpp:1027)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737== 
+==574737== Conditional jump or move depends on uninitialised value(s)
+==574737==    at 0x141384: std::pair<float, unsigned int>* std::__relocate_a_1<std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> > >(std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> >&) (stl_uninitialized.h:1104)
+==574737==    by 0x140943: std::pair<float, unsigned int>* std::__relocate_a<std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> > >(std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> >&) (stl_uninitialized.h:1147)
+==574737==    by 0x13FB4B: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_S_do_relocate(std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> >&, std::integral_constant<bool, true>) (stl_vector.h:495)
+==574737==    by 0x13DD26: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_S_relocate(std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> >&) (stl_vector.h:512)
+==574737==    by 0x155E1B: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::reserve(unsigned long) (vector.tcc:80)
+==574737==    by 0x14DDB8: QueryEngine::QueryEngine(char const*, unsigned int, char const*, unsigned int, unsigned int, char const*, unsigned int, char const*, char const*, Index*, int, unsigned int, bool, unsigned int, bool, unsigned int, unsigned int, char const*, float) (QueryEngine.cpp:177)
+==574737==    by 0x118E6F: Hercules::TrainWeight() (Hercules.cpp:1027)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737==  Uninitialised value was created by a heap allocation
+==574737==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x14DCB7: QueryEngine::QueryEngine(char const*, unsigned int, char const*, unsigned int, unsigned int, char const*, unsigned int, char const*, char const*, Index*, int, unsigned int, bool, unsigned int, bool, unsigned int, unsigned int, char const*, float) (QueryEngine.cpp:170)
+==574737==    by 0x118E6F: Hercules::TrainWeight() (Hercules.cpp:1027)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737== 
+==574737== Conditional jump or move depends on uninitialised value(s)
+==574737==    at 0x138B8F: std::_Vector_base<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_deallocate(std::pair<float, unsigned int>*, unsigned long) (stl_vector.h:389)
+==574737==    by 0x155EC9: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::reserve(unsigned long) (vector.tcc:93)
+==574737==    by 0x14DDB8: QueryEngine::QueryEngine(char const*, unsigned int, char const*, unsigned int, unsigned int, char const*, unsigned int, char const*, char const*, Index*, int, unsigned int, bool, unsigned int, bool, unsigned int, unsigned int, char const*, float) (QueryEngine.cpp:177)
+==574737==    by 0x118E6F: Hercules::TrainWeight() (Hercules.cpp:1027)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737==  Uninitialised value was created by a heap allocation
+==574737==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x14DCB7: QueryEngine::QueryEngine(char const*, unsigned int, char const*, unsigned int, unsigned int, char const*, unsigned int, char const*, char const*, Index*, int, unsigned int, bool, unsigned int, bool, unsigned int, unsigned int, char const*, float) (QueryEngine.cpp:170)
+==574737==    by 0x118E6F: Hercules::TrainWeight() (Hercules.cpp:1027)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737== 
+==574737== Invalid read of size 2
+==574737==    at 0x151AD6: QueryEngine::searchflatWithHopPath(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, std::vector<unsigned int, std::allocator<unsigned int> >&) (QueryEngine.cpp:1438)
+==574737==    by 0x151004: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1213)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x154751: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) (QueryEngine.cpp:2157)
+==574737==    by 0x14FBF9: QueryEngine::TrainWeightByLearnDataset(unsigned int, unsigned int, std::vector<std::set<Node*, std::less<Node*>, std::allocator<Node*> >, std::allocator<std::set<Node*, std::less<Node*>, std::allocator<Node*> > > >) (QueryEngine.cpp:941)
+==574737==    by 0x11945E: Hercules::searchCandidateLeafNode() (Hercules.cpp:1096)
+==574737==    by 0x118E8A: Hercules::TrainWeight() (Hercules.cpp:1028)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737==  Address 0x60a7024 is 12 bytes after a block of size 24 alloc'd
+==574737==    at 0x4846FA3: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x140722: std::__new_allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> >::allocate(unsigned long, void const*) (new_allocator.h:151)
+==574737==    by 0x13D1B7: allocate (alloc_traits.h:482)
+==574737==    by 0x13D1B7: std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false>* std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> > >::_M_allocate_node<std::piecewise_construct_t const&, std::tuple<unsigned long long const&>, std::tuple<> >(std::piecewise_construct_t const&, std::tuple<unsigned long long const&>&&, std::tuple<>&&) (hashtable_policy.h:1990)
+==574737==    by 0x13A606: std::_Hashtable<unsigned long long, std::pair<unsigned long long const, unsigned int>, std::allocator<std::pair<unsigned long long const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned long long>, std::hash<unsigned long long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::_Scoped_node<std::piecewise_construct_t const&, std::tuple<unsigned long long const&>, std::tuple<> >(std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> > >*, std::piecewise_construct_t const&, std::tuple<unsigned long long const&>&&, std::tuple<>&&) (hashtable.h:307)
+==574737==    by 0x13897C: std::__detail::_Map_base<unsigned long long, std::pair<unsigned long long const, unsigned int>, std::allocator<std::pair<unsigned long long const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned long long>, std::hash<unsigned long long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long long const&) (hashtable_policy.h:818)
+==574737==    by 0x1359FC: std::unordered_map<unsigned long long, unsigned int, std::hash<unsigned long long>, std::equal_to<unsigned long long>, std::allocator<std::pair<unsigned long long const, unsigned int> > >::operator[](unsigned long long const&) (unordered_map.h:987)
+==574737==    by 0x132E6B: hnswlib::HierarchicalNSW<float>::addPoint(void const*, unsigned long long, int) (hnswalg.h:1202)
+==574737==    by 0x13198E: hnswlib::HierarchicalNSW<float>::addPoint(void const*, unsigned long long) (hnswalg.h:1015)
+==574737==    by 0x130020: Node::leafToGraph(Index*) [clone ._omp_fn.0] (Node.cpp:202)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x12BBCC: Node::leafToGraph(Index*) (Node.cpp:200)
+==574737==    by 0x14C124: Index::buildIndexFromBinaryData(char*, unsigned long long) [clone ._omp_fn.0] (Index.cpp:124)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+==574737== 
+==574737== Invalid write of size 2
+==574737==    at 0x151B0C: QueryEngine::searchflatWithHopPath(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, std::vector<unsigned int, std::allocator<unsigned int> >&) (QueryEngine.cpp:1439)
+==574737==    by 0x151004: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1213)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x154751: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) (QueryEngine.cpp:2157)
+==574737==    by 0x14FBF9: QueryEngine::TrainWeightByLearnDataset(unsigned int, unsigned int, std::vector<std::set<Node*, std::less<Node*>, std::allocator<Node*> >, std::allocator<std::set<Node*, std::less<Node*>, std::allocator<Node*> > > >) (QueryEngine.cpp:941)
+==574737==    by 0x11945E: Hercules::searchCandidateLeafNode() (Hercules.cpp:1096)
+==574737==    by 0x118E8A: Hercules::TrainWeight() (Hercules.cpp:1028)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737==  Address 0x60a7024 is 12 bytes after a block of size 24 alloc'd
+==574737==    at 0x4846FA3: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x140722: std::__new_allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> >::allocate(unsigned long, void const*) (new_allocator.h:151)
+==574737==    by 0x13D1B7: allocate (alloc_traits.h:482)
+==574737==    by 0x13D1B7: std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false>* std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> > >::_M_allocate_node<std::piecewise_construct_t const&, std::tuple<unsigned long long const&>, std::tuple<> >(std::piecewise_construct_t const&, std::tuple<unsigned long long const&>&&, std::tuple<>&&) (hashtable_policy.h:1990)
+==574737==    by 0x13A606: std::_Hashtable<unsigned long long, std::pair<unsigned long long const, unsigned int>, std::allocator<std::pair<unsigned long long const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned long long>, std::hash<unsigned long long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::_Scoped_node<std::piecewise_construct_t const&, std::tuple<unsigned long long const&>, std::tuple<> >(std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> > >*, std::piecewise_construct_t const&, std::tuple<unsigned long long const&>&&, std::tuple<>&&) (hashtable.h:307)
+==574737==    by 0x13897C: std::__detail::_Map_base<unsigned long long, std::pair<unsigned long long const, unsigned int>, std::allocator<std::pair<unsigned long long const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned long long>, std::hash<unsigned long long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long long const&) (hashtable_policy.h:818)
+==574737==    by 0x1359FC: std::unordered_map<unsigned long long, unsigned int, std::hash<unsigned long long>, std::equal_to<unsigned long long>, std::allocator<std::pair<unsigned long long const, unsigned int> > >::operator[](unsigned long long const&) (unordered_map.h:987)
+==574737==    by 0x132E6B: hnswlib::HierarchicalNSW<float>::addPoint(void const*, unsigned long long, int) (hnswalg.h:1202)
+==574737==    by 0x13198E: hnswlib::HierarchicalNSW<float>::addPoint(void const*, unsigned long long) (hnswalg.h:1015)
+==574737==    by 0x130020: Node::leafToGraph(Index*) [clone ._omp_fn.0] (Node.cpp:202)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x12BBCC: Node::leafToGraph(Index*) (Node.cpp:200)
+==574737==    by 0x14C124: Index::buildIndexFromBinaryData(char*, unsigned long long) [clone ._omp_fn.0] (Index.cpp:124)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+==574737== 
+==574737== Conditional jump or move depends on uninitialised value(s)
+==574737==    at 0x151AE6: QueryEngine::searchflatWithHopPath(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, std::vector<unsigned int, std::allocator<unsigned int> >&) (QueryEngine.cpp:1438)
+==574737==    by 0x151004: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1213)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x154751: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) (QueryEngine.cpp:2157)
+==574737==    by 0x14FBF9: QueryEngine::TrainWeightByLearnDataset(unsigned int, unsigned int, std::vector<std::set<Node*, std::less<Node*>, std::allocator<Node*> >, std::allocator<std::set<Node*, std::less<Node*>, std::allocator<Node*> > > >) (QueryEngine.cpp:941)
+==574737==    by 0x11945E: Hercules::searchCandidateLeafNode() (Hercules.cpp:1096)
+==574737==    by 0x118E8A: Hercules::TrainWeight() (Hercules.cpp:1028)
+==574737==    by 0x1106BB: main (main.cpp:398)
+==574737==  Uninitialised value was created by a heap allocation
+==574737==    at 0x4846FA3: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x140722: std::__new_allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> >::allocate(unsigned long, void const*) (new_allocator.h:151)
+==574737==    by 0x13D1B7: allocate (alloc_traits.h:482)
+==574737==    by 0x13D1B7: std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false>* std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> > >::_M_allocate_node<std::piecewise_construct_t const&, std::tuple<unsigned long long const&>, std::tuple<> >(std::piecewise_construct_t const&, std::tuple<unsigned long long const&>&&, std::tuple<>&&) (hashtable_policy.h:1990)
+==574737==    by 0x13A606: std::_Hashtable<unsigned long long, std::pair<unsigned long long const, unsigned int>, std::allocator<std::pair<unsigned long long const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned long long>, std::hash<unsigned long long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::_Scoped_node<std::piecewise_construct_t const&, std::tuple<unsigned long long const&>, std::tuple<> >(std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long long const, unsigned int>, false> > >*, std::piecewise_construct_t const&, std::tuple<unsigned long long const&>&&, std::tuple<>&&) (hashtable.h:307)
+==574737==    by 0x13897C: std::__detail::_Map_base<unsigned long long, std::pair<unsigned long long const, unsigned int>, std::allocator<std::pair<unsigned long long const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned long long>, std::hash<unsigned long long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long long const&) (hashtable_policy.h:818)
+==574737==    by 0x1359FC: std::unordered_map<unsigned long long, unsigned int, std::hash<unsigned long long>, std::equal_to<unsigned long long>, std::allocator<std::pair<unsigned long long const, unsigned int> > >::operator[](unsigned long long const&) (unordered_map.h:987)
+==574737==    by 0x132E6B: hnswlib::HierarchicalNSW<float>::addPoint(void const*, unsigned long long, int) (hnswalg.h:1202)
+==574737==    by 0x13198E: hnswlib::HierarchicalNSW<float>::addPoint(void const*, unsigned long long) (hnswalg.h:1015)
+==574737==    by 0x130020: Node::leafToGraph(Index*) [clone ._omp_fn.0] (Node.cpp:202)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x12BBCC: Node::leafToGraph(Index*) (Node.cpp:200)
+==574737==    by 0x14C124: Index::buildIndexFromBinaryData(char*, unsigned long long) [clone ._omp_fn.0] (Index.cpp:124)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+==574737== 
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+--574737-- warning: evaluate_Dwarf3_Expr: unhandled DW_OP_ 0x9b
+==574737== Thread 6:
+==574737== Invalid write of size 2
+==574737==    at 0x1518D2: QueryEngine::searchflatWithHopPath(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, std::vector<unsigned int, std::allocator<unsigned int> >&) (QueryEngine.cpp:1414)
+==574737==    by 0x151004: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1213)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+==574737==  Address 0x65c5930 is 16 bytes after a block of size 32 in arena "client"
+==574737== 
+--574737-- VALGRIND INTERNAL ERROR: Valgrind received a signal 11 (SIGSEGV) - exiting
+--574737-- si_code=1;  Faulting address: 0x2067BD758;  sp: 0x1012069d90
+
+valgrind: the 'impossible' happened:
+   Killed by fatal signal
+
+host stacktrace:
+==574737==    at 0x5804F865: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x58004DC9: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x580052B3: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x580054AD: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x5809E9C8: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x580EB087: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x580EB35E: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0x580AF39D: ??? (in /usr/libexec/valgrind/memcheck-amd64-linux)
+==574737==    by 0xDEADBEEFDEADBEEE: ???
+==574737==    by 0xDEADBEEFDEADBEEE: ???
+==574737==    by 0xDEADBEEFDEADBEEE: ???
+
+sched status:
+  running_tid=7
+
+Thread 1: status = VgTs_Yielding (lwpid 574737)
+==574737==    at 0x15D129: bool __gnu_cxx::operator!=<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > > const&, __gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > > const&) (stl_iterator.h:1244)
+==574737==    by 0x15C4CF: std::pair<float, unsigned int>* std::__do_uninit_copy<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*>(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, __gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*) (stl_uninitialized.h:119)
+==574737==    by 0x15B156: std::pair<float, unsigned int>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*>(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, __gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*) (stl_uninitialized.h:137)
+==574737==    by 0x1590CE: std::pair<float, unsigned int>* std::uninitialized_copy<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*>(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, __gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*) (stl_uninitialized.h:185)
+==574737==    by 0x15778D: std::pair<float, unsigned int>* std::__uninitialized_copy_a<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*, std::pair<float, unsigned int> >(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, __gnu_cxx::__normal_iterator<std::pair<float, unsigned int> const*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, std::pair<float, unsigned int>*, std::allocator<std::pair<float, unsigned int> >&) (stl_uninitialized.h:373)
+==574737==    by 0x15600B: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::vector(std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > const&) (stl_vector.h:606)
+==574737==    by 0x15550E: std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >::priority_queue(std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > const&) (stl_queue.h:498)
+==574737==    by 0x1515E5: getTop1Index(std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >) (QueryEngine.cpp:1253)
+==574737==    by 0x152204: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1554)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BD9976: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x154751: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) (QueryEngine.cpp:2157)
+==574737==    by 0x14FBF9: QueryEngine::TrainWeightByLearnDataset(unsigned int, unsigned int, std::vector<std::set<Node*, std::less<Node*>, std::allocator<Node*> >, std::allocator<std::set<Node*, std::less<Node*>, std::allocator<Node*> > > >) (QueryEngine.cpp:941)
+==574737==    by 0x11945E: Hercules::searchCandidateLeafNode() (Hercules.cpp:1096)
+==574737==    by 0x118E8A: Hercules::TrainWeight() (Hercules.cpp:1028)
+==574737==    by 0x1106BB: main (main.cpp:398)
+client stack range: [0x1FFEFFD000 0x1FFF000FFF] client SP: 0x1FFEFFE9C0
+valgrind stack range: [0x10090B2000 0x10091B1FFF] top usage: 18360 of 1048576
+
+Thread 2: status = VgTs_WaitSys syscall 257 (lwpid 574942)
+==574737==    at 0x4D621E5: open (open64.c:41)
+==574737==    by 0x4CD8B0E: _IO_file_open (fileops.c:188)
+==574737==    by 0x4CD8E51: _IO_file_fopen@@GLIBC_2.2.5 (fileops.c:281)
+==574737==    by 0x4CCCEE1: __fopen_internal (iofopen.c:75)
+==574737==    by 0x4CCCEE1: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==574737==    by 0x15236F: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1572)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x8E5E000 0x965CFFF] client SP: 0x965C810
+valgrind stack range: [0x1011052000 0x1011151FFF] top usage: 6880 of 1048576
+
+Thread 3: status = VgTs_WaitSys syscall 257 (lwpid 574943)
+==574737==    at 0x4D621E5: open (open64.c:41)
+==574737==    by 0x4CD8B0E: _IO_file_open (fileops.c:188)
+==574737==    by 0x4CD8E51: _IO_file_fopen@@GLIBC_2.2.5 (fileops.c:281)
+==574737==    by 0x4CCCEE1: __fopen_internal (iofopen.c:75)
+==574737==    by 0x4CCCEE1: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==574737==    by 0x15236F: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1572)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x965F000 0x9E5DFFF] client SP: 0x9E5D810
+valgrind stack range: [0x1011356000 0x1011455FFF] top usage: 6768 of 1048576
+
+Thread 4: status = VgTs_WaitSys syscall 257 (lwpid 574944)
+==574737==    at 0x4D621E5: open (open64.c:41)
+==574737==    by 0x4CD8B0E: _IO_file_open (fileops.c:188)
+==574737==    by 0x4CD8E51: _IO_file_fopen@@GLIBC_2.2.5 (fileops.c:281)
+==574737==    by 0x4CCCEE1: __fopen_internal (iofopen.c:75)
+==574737==    by 0x4CCCEE1: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==574737==    by 0x15236F: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1572)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x9E60000 0xA65EFFF] client SP: 0xA65E810
+valgrind stack range: [0x101165A000 0x1011759FFF] top usage: 6752 of 1048576
+
+Thread 5: status = VgTs_WaitSys syscall 257 (lwpid 574945)
+==574737==    at 0x4D621E5: open (open64.c:41)
+==574737==    by 0x4CD8B0E: _IO_file_open (fileops.c:188)
+==574737==    by 0x4CD8E51: _IO_file_fopen@@GLIBC_2.2.5 (fileops.c:281)
+==574737==    by 0x4CCCEE1: __fopen_internal (iofopen.c:75)
+==574737==    by 0x4CCCEE1: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==574737==    by 0x15236F: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1572)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xA661000 0xAE5FFFF] client SP: 0xAE5F810
+valgrind stack range: [0x1011962000 0x1011A61FFF] top usage: 6752 of 1048576
+
+Thread 6: status = VgTs_WaitSys syscall 257 (lwpid 574946)
+==574737==    at 0x4D621E5: open (open64.c:41)
+==574737==    by 0x4CD8B0E: _IO_file_open (fileops.c:188)
+==574737==    by 0x4CD8E51: _IO_file_fopen@@GLIBC_2.2.5 (fileops.c:281)
+==574737==    by 0x4CCCEE1: __fopen_internal (iofopen.c:75)
+==574737==    by 0x4CCCEE1: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==574737==    by 0x15236F: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1572)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xAE62000 0xB660FFF] client SP: 0xB660810
+valgrind stack range: [0x1011C66000 0x1011D65FFF] top usage: 8296 of 1048576
+
+Thread 7: status = VgTs_Runnable (lwpid 574947)
+==574737==    at 0x4846FA3: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==574737==    by 0x15D621: std::__new_allocator<std::__detail::_Hash_node<std::pair<unsigned int const, unsigned int>, false> >::allocate(unsigned long, void const*) (new_allocator.h:151)
+==574737==    by 0x15BC3B: allocate (alloc_traits.h:482)
+==574737==    by 0x15BC3B: std::__detail::_Hash_node<std::pair<unsigned int const, unsigned int>, false>* std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned int const, unsigned int>, false> > >::_M_allocate_node<std::piecewise_construct_t const&, std::tuple<unsigned int&&>, std::tuple<> >(std::piecewise_construct_t const&, std::tuple<unsigned int&&>&&, std::tuple<>&&) (hashtable_policy.h:1990)
+==574737==    by 0x15A1AA: std::_Hashtable<unsigned int, std::pair<unsigned int const, unsigned int>, std::allocator<std::pair<unsigned int const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned int>, std::hash<unsigned int>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::_Scoped_node<std::piecewise_construct_t const&, std::tuple<unsigned int&&>, std::tuple<> >(std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::pair<unsigned int const, unsigned int>, false> > >*, std::piecewise_construct_t const&, std::tuple<unsigned int&&>&&, std::tuple<>&&) (hashtable.h:307)
+==574737==    by 0x15813B: std::__detail::_Map_base<unsigned int, std::pair<unsigned int const, unsigned int>, std::allocator<std::pair<unsigned int const, unsigned int> >, std::__detail::_Select1st, std::equal_to<unsigned int>, std::hash<unsigned int>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned int&&) (hashtable_policy.h:845)
+==574737==    by 0x156C4B: std::unordered_map<unsigned int, unsigned int, std::hash<unsigned int>, std::equal_to<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned int> > >::operator[](unsigned int&&) (unordered_map.h:991)
+==574737==    by 0x151D82: QueryEngine::searchflatWithHopPath(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, std::vector<unsigned int, std::allocator<unsigned int> >&) (QueryEngine.cpp:1461)
+==574737==    by 0x151004: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1213)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xB663000 0xBE61FFF] client SP: 0xBE615C0
+valgrind stack range: [0x1011F6A000 0x1012069FFF] top usage: 13432 of 1048576
+
+Thread 8: status = VgTs_WaitSys syscall 0 (lwpid 574948)
+==574737==    at 0x4D62A9A: __libc_read (read.c:26)
+==574737==    by 0x4D62A9A: read (read.c:24)
+==574737==    by 0x4CD97A4: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:517)
+==574737==    by 0x4CDAEBF: _IO_file_xsgetn (fileops.c:1322)
+==574737==    by 0x4CCD49A: fread (iofread.c:38)
+==574737==    by 0x152429: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1582)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xBE64000 0xC662FFF] client SP: 0xC662860
+valgrind stack range: [0x101226E000 0x101236DFFF] top usage: 6768 of 1048576
+
+Thread 9: status = VgTs_WaitSys syscall 0 (lwpid 574949)
+==574737==    at 0x4D62A9A: __libc_read (read.c:26)
+==574737==    by 0x4D62A9A: read (read.c:24)
+==574737==    by 0x4CD97A4: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:517)
+==574737==    by 0x4CDAEBF: _IO_file_xsgetn (fileops.c:1322)
+==574737==    by 0x4CCD49A: fread (iofread.c:38)
+==574737==    by 0x152429: QueryEngine::updateWeightByHopPath(Node*, void const*, std::vector<unsigned int, std::allocator<unsigned int> >, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, int*) (QueryEngine.cpp:1582)
+==574737==    by 0x151069: QueryEngine::TrainWeightinflat(Node*, unsigned int, void const*, unsigned long, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:1215)
+==574737==    by 0x154140: QueryEngine::TrainWeightinGraphLeaf(Node*, void const*, unsigned long, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >&, float&, querying_stats&, unsigned short*, unsigned short&, unsigned int, int*) (QueryEngine.cpp:2085)
+==574737==    by 0x154EC7: QueryEngine::TrainWeightinNpLeafParallel(float*, int*, unsigned int, unsigned int, unsigned int, unsigned int, std::set<Node*, std::less<Node*>, std::allocator<Node*> >) [clone ._omp_fn.0] (QueryEngine.cpp:2166)
+==574737==    by 0x4BE379E: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==574737==    by 0x4CE3AA3: start_thread (pthread_create.c:447)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xC665000 0xCE63FFF] client SP: 0xCE63860
+valgrind stack range: [0x1012572000 0x1012671FFF] top usage: 6768 of 1048576
+
+Thread 10: status = VgTs_WaitSys syscall 202 (lwpid 574950)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xCE66000 0xD664FFF] client SP: 0xD664DE8
+valgrind stack range: [0x1012876000 0x1012975FFF] top usage: 6768 of 1048576
+
+Thread 11: status = VgTs_WaitSys syscall 202 (lwpid 574951)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xD667000 0xDE65FFF] client SP: 0xDE65DE8
+valgrind stack range: [0x1012B7E000 0x1012C7DFFF] top usage: 4272 of 1048576
+
+Thread 12: status = VgTs_WaitSys syscall 202 (lwpid 574952)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xDE68000 0xE666FFF] client SP: 0xE666DE8
+valgrind stack range: [0x1012E82000 0x1012F81FFF] top usage: 7248 of 1048576
+
+Thread 13: status = VgTs_WaitSys syscall 202 (lwpid 574953)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xE669000 0xEE67FFF] client SP: 0xEE67DE8
+valgrind stack range: [0x1013186000 0x1013285FFF] top usage: 7248 of 1048576
+
+Thread 15: status = VgTs_WaitSys syscall 202 (lwpid 574955)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xF66B000 0xFE69FFF] client SP: 0xFE69DE8
+valgrind stack range: [0x101378E000 0x101388DFFF] top usage: 6256 of 1048576
+
+Thread 16: status = VgTs_WaitSys syscall 202 (lwpid 574956)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0xFE6C000 0x1066AFFF] client SP: 0x1066ADE8
+valgrind stack range: [0x1013A92000 0x1013B91FFF] top usage: 7248 of 1048576
+
+Thread 17: status = VgTs_WaitSys syscall 202 (lwpid 574957)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1066D000 0x10E6BFFF] client SP: 0x10E6BDE8
+valgrind stack range: [0x1013D96000 0x1013E95FFF] top usage: 6800 of 1048576
+
+Thread 18: status = VgTs_WaitSys syscall 202 (lwpid 574958)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x10E6E000 0x1166CFFF] client SP: 0x1166CDE8
+valgrind stack range: [0x101409A000 0x1014199FFF] top usage: 7248 of 1048576
+
+Thread 19: status = VgTs_WaitSys syscall 202 (lwpid 574959)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1166F000 0x11E6DFFF] client SP: 0x11E6DDE8
+valgrind stack range: [0x101439E000 0x101449DFFF] top usage: 3312 of 1048576
+
+Thread 20: status = VgTs_WaitSys syscall 202 (lwpid 574960)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x11E70000 0x1266EFFF] client SP: 0x1266EDE8
+valgrind stack range: [0x10146A2000 0x10147A1FFF] top usage: 6784 of 1048576
+
+Thread 21: status = VgTs_WaitSys syscall 202 (lwpid 574961)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x12671000 0x12E6FFFF] client SP: 0x12E6FDE8
+valgrind stack range: [0x10149AA000 0x1014AA9FFF] top usage: 6752 of 1048576
+
+Thread 22: status = VgTs_WaitSys syscall 202 (lwpid 574962)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x12E72000 0x13670FFF] client SP: 0x13670DE8
+valgrind stack range: [0x1014CAE000 0x1014DADFFF] top usage: 7264 of 1048576
+
+Thread 23: status = VgTs_WaitSys syscall 202 (lwpid 574963)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x13673000 0x13E71FFF] client SP: 0x13E71DE8
+valgrind stack range: [0x1014FB2000 0x10150B1FFF] top usage: 6752 of 1048576
+
+Thread 24: status = VgTs_WaitSys syscall 202 (lwpid 574964)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x13E74000 0x14672FFF] client SP: 0x14672DE8
+valgrind stack range: [0x10152B6000 0x10153B5FFF] top usage: 3400 of 1048576
+
+Thread 25: status = VgTs_WaitSys syscall 202 (lwpid 574965)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x14675000 0x14E73FFF] client SP: 0x14E73DE8
+valgrind stack range: [0x10155BA000 0x10156B9FFF] top usage: 7248 of 1048576
+
+Thread 26: status = VgTs_WaitSys syscall 202 (lwpid 574966)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x14E76000 0x15674FFF] client SP: 0x15674DE8
+valgrind stack range: [0x10158BE000 0x10159BDFFF] top usage: 7264 of 1048576
+
+Thread 27: status = VgTs_WaitSys syscall 202 (lwpid 574967)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x15677000 0x15E75FFF] client SP: 0x15E75DE8
+valgrind stack range: [0x1015BC2000 0x1015CC1FFF] top usage: 7248 of 1048576
+
+Thread 28: status = VgTs_WaitSys syscall 202 (lwpid 574971)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x15E78000 0x16676FFF] client SP: 0x16676DE8
+valgrind stack range: [0x1015EC6000 0x1015FC5FFF] top usage: 4752 of 1048576
+
+Thread 29: status = VgTs_WaitSys syscall 202 (lwpid 574973)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x16679000 0x16E77FFF] client SP: 0x16E77DE8
+valgrind stack range: [0x10161CA000 0x10162C9FFF] top usage: 7264 of 1048576
+
+Thread 30: status = VgTs_WaitSys syscall 202 (lwpid 574976)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x16E7A000 0x17678FFF] client SP: 0x17678DE8
+valgrind stack range: [0x10164CE000 0x10165CDFFF] top usage: 6768 of 1048576
+
+Thread 31: status = VgTs_WaitSys syscall 202 (lwpid 574977)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1767B000 0x17E79FFF] client SP: 0x17E79DE8
+valgrind stack range: [0x10167D2000 0x10168D1FFF] top usage: 6752 of 1048576
+
+Thread 32: status = VgTs_WaitSys syscall 202 (lwpid 574978)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x17E7C000 0x1867AFFF] client SP: 0x1867ADE8
+valgrind stack range: [0x1016AD6000 0x1016BD5FFF] top usage: 7248 of 1048576
+
+Thread 33: status = VgTs_WaitSys syscall 202 (lwpid 574979)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1867D000 0x18E7BFFF] client SP: 0x18E7BDE8
+valgrind stack range: [0x1016DDA000 0x1016ED9FFF] top usage: 6800 of 1048576
+
+Thread 34: status = VgTs_WaitSys syscall 202 (lwpid 574980)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x18E7E000 0x1967CFFF] client SP: 0x1967CDE8
+valgrind stack range: [0x10170DE000 0x10171DDFFF] top usage: 3312 of 1048576
+
+Thread 35: status = VgTs_WaitSys syscall 202 (lwpid 574981)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1967F000 0x19E7DFFF] client SP: 0x19E7DDE8
+valgrind stack range: [0x10173E2000 0x10174E1FFF] top usage: 3312 of 1048576
+
+Thread 36: status = VgTs_WaitSys syscall 202 (lwpid 574990)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x19E80000 0x1A67EFFF] client SP: 0x1A67EDE8
+valgrind stack range: [0x10176E6000 0x10177E5FFF] top usage: 3312 of 1048576
+
+Thread 37: status = VgTs_WaitSys syscall 202 (lwpid 574996)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1A681000 0x1AE7FFFF] client SP: 0x1AE7FDE8
+valgrind stack range: [0x10179EE000 0x1017AEDFFF] top usage: 3304 of 1048576
+
+Thread 38: status = VgTs_WaitSys syscall 202 (lwpid 575003)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1AE82000 0x1B680FFF] client SP: 0x1B680DE8
+valgrind stack range: [0x1017CF2000 0x1017DF1FFF] top usage: 4320 of 1048576
+
+Thread 39: status = VgTs_WaitSys syscall 202 (lwpid 575015)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1B683000 0x1BE81FFF] client SP: 0x1BE81DE8
+valgrind stack range: [0x1017FF6000 0x10180F5FFF] top usage: 3344 of 1048576
+
+Thread 40: status = VgTs_WaitSys syscall 202 (lwpid 575028)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1BE84000 0x1C682FFF] client SP: 0x1C682DE8
+valgrind stack range: [0x10182FA000 0x10183F9FFF] top usage: 3808 of 1048576
+
+Thread 41: status = VgTs_WaitSys syscall 202 (lwpid 575039)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1C685000 0x1CE83FFF] client SP: 0x1CE83DE8
+valgrind stack range: [0x10185FE000 0x10186FDFFF] top usage: 3824 of 1048576
+
+Thread 42: status = VgTs_WaitSys syscall 202 (lwpid 575051)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1CE86000 0x1D684FFF] client SP: 0x1D684DE8
+valgrind stack range: [0x1018902000 0x1018A01FFF] top usage: 4320 of 1048576
+
+Thread 44: status = VgTs_WaitSys syscall 202 (lwpid 575087)
+==574737==    at 0x4CDFF0B: futex_wait (futex-internal.h:146)
+==574737==    by 0x4CDFF0B: __lll_lock_wait_private (lowlevellock.c:34)
+==574737==    by 0x4CE020B: __nptl_deallocate_stack (nptl-stack.c:113)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1DE88000 0x1E686FFF] client SP: 0x1E686DE8
+valgrind stack range: [0x1018F0A000 0x1019009FFF] top usage: 3432 of 1048576
+
+Thread 47: status = VgTs_Yielding (lwpid 575093)
+==574737==    at 0x401486E: _dl_deallocate_tls (dl-tls.c:640)
+==574737==    by 0x4CE00E9: __nptl_free_stacks (nptl-stack.c:79)
+==574737==    by 0x4CE0244: queue_stack (nptl-stack.c:107)
+==574737==    by 0x4CE0244: __nptl_deallocate_stack (nptl-stack.c:124)
+==574737==    by 0x4CE3AE4: start_thread (pthread_create.c:575)
+==574737==    by 0x4D70A33: clone (clone.S:100)
+client stack range: [0x1F68B000 0x1FE89FFF] client SP: 0x1FE89D80
+valgrind stack range: [0x1019816000 0x1019915FFF] top usage: 4384 of 1048576
+
+
+Note: see also the FAQ in the source distribution.
+It contains workarounds to several common problems.
+In particular, if Valgrind aborted or crashed after
+identifying problems in your program, there's a good chance
+that fixing those problems will prevent Valgrind aborting or
+crashing, especially if it happened in m_mallocfree.c.
+
+If that doesn't help, please report this bug to: www.valgrind.org
+
+In the bug report, send all the above text, the valgrind
+version, and what OS and version you are using.  Thanks.
+
