@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblibelpis.a CMakeFiles/libelpis.dir/src/BufferManager.cpp.o CMakeFiles/libelpis.dir/src/calc_utils.cpp.o CMakeFiles/libelpis.dir/src/Hercules.cpp.o CMakeFiles/libelpis.dir/src/Node.cpp.o CMakeFiles/libelpis.dir/src/Index.cpp.o CMakeFiles/libelpis.dir/src/pqueue.cpp.o CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o CMakeFiles/libelpis.dir/src/Setting.cpp.o CMakeFiles/libelpis.dir/src/file_utils.cpp.o
+/usr/bin/ranlib liblibelpis.a
