@@ -897,15 +897,35 @@ VectorWithIndex *Node::getTS(Index *index) const {
     unsigned int ts_length = index->index_setting->timeseries_size;
     unsigned int max_leaf_size = index->index_setting->max_leaf_size;
     auto *ret = static_cast<VectorWithIndex *>(calloc(this->node_size, sizeof(VectorWithIndex)));
+    
+    // 🛡️ CRITICAL FIX: 检查主内存分配
+    if (ret == nullptr) {
+        std::cerr << "Error in Node.cpp: Could not allocate memory for VectorWithIndex array in getTS()." << std::endl;
+        return nullptr;
+    }
+    
     for(int i = 0; i < this->node_size; ++i) {
         ret[i].ts = static_cast<ts_type *>(malloc(sizeof(ts_type) * ts_length));
         if (ret[i].ts == nullptr) {
             std::cerr << "Error in Node.cpp: Could not allocate memory for time series in getTS()." << std::endl;
+            // 🛡️ MEMORY LEAK FIX: 清理已分配的内存
+            for (int j = 0; j < i; ++j) {
+                free(ret[j].ts);
+                free(ret[j].ts_index);
+            }
+            free(ret);
             return nullptr;
         }
         ret[i].ts_index = static_cast<file_position_type *>(malloc(sizeof(file_position_type)));
         if (ret[i].ts_index == nullptr) {
             std::cerr << "Error in Node.cpp: Could not allocate memory for time series index in getTS()." << std::endl;
+            // 🛡️ MEMORY LEAK FIX: 清理已分配的内存（包括当前的ts）
+            free(ret[i].ts);
+            for (int j = 0; j < i; ++j) {
+                free(ret[j].ts);
+                free(ret[j].ts_index);
+            }
+            free(ret);
             return nullptr;
         }
     }
@@ -918,6 +938,13 @@ VectorWithIndex *Node::getTS(Index *index) const {
             cerr << "Error in Node.cpp: Could not open"
                     "the filename " << full_filename
                  << " Reason = " << full_filename << strerror(errno) << endl;
+            // 🛡️ MEMORY LEAK FIX: 清理已分配的内存
+            for (int i = 0; i < this->node_size; ++i) {
+                free(ret[i].ts);
+                free(ret[i].ts_index);
+            }
+            free(ret);
+            free(full_filename); // 也要释放文件名内存
             return nullptr;
         }
 
@@ -1092,15 +1119,15 @@ void Node::write(Index *index, FILE *file) {
     if (this->is_leaf) {
 
         char *leafgraph_full_filename = this->getLeafGraphFullFileName(index); 
-        cout<<"leafgraph_full_filename:"<<leafgraph_full_filename<<endl;
+        // cout<<"leafgraph_full_filename:"<<leafgraph_full_filename<<endl;
 
         this->leafgraph->saveIndex(leafgraph_full_filename);
         free(leafgraph_full_filename);
-        cout<<"[Save Leaf Graph]  id : " << this->id << " | size : " << this->node_size << endl;
+        // cout<<"[Save Leaf Graph]  id : " << this->id << " | size : " << this->node_size << endl;
 
         if (this->filename != nullptr) {
-            printf("[Save Leaf]  id : %li | size : %i\n",num_leaf_node++, this->node_size);
-            std::cout << "filename: " << this->filename << std::endl;
+            // printf("[Save Leaf]  id : %li | size : %i\n",num_leaf_node++, this->node_size);
+            // std::cout << "filename: " << this->filename << std::endl;
             int filename_size = strlen(this->filename);
             fwrite(&filename_size, sizeof(int), 1, file);
             fwrite(this->filename, sizeof(char), filename_size, file);

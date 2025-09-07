@@ -483,3 +483,34 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:56 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/home/xln/elpis/Release/CMakeFiles/CMakeScratch/TryCompile-Nj3IyI"
+      binary: "/home/xln/elpis/Release/CMakeFiles/CMakeScratch/TryCompile-Nj3IyI"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/home/xln/elpis/Release/CMakeFiles/CMakeScratch/TryCompile-Nj3IyI'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_396f1
+        [1/2] /usr/bin/riscv64-linux-gnu-gcc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_396f1.dir/src.c.o -c /home/xln/elpis/Release/CMakeFiles/CMakeScratch/TryCompile-Nj3IyI/src.c
+        [2/2] : && /usr/bin/riscv64-linux-gnu-gcc   CMakeFiles/cmTC_396f1.dir/src.c.o -o cmTC_396f1   && :
+        
+      exitCode: 0
+...

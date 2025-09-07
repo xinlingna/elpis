@@ -61,7 +61,8 @@ public:
 			 char *index_path, unsigned int timeseries_size, unsigned int leaf_size,
              unsigned int nprobes, bool parallel, unsigned int nworker, bool flatt,
 			 int efConstruction, unsigned int m, int efSearch, unsigned int k, unsigned int ep,
-			 char *model_file, float zero_edge_pass_ratio, float μ, float T, float thres_probability,int mode);
+			 char *model_file, float zero_edge_pass_ratio, 
+             bool search_withWeight, float μ, float T, float thres_probability,int mode);
 
     // Function declarations
     void buildIndexTree();
@@ -97,6 +98,7 @@ public:
     float thres_probability; 
     float μ;
     float T;
+    bool search_withWeight; // 是否使用权重搜索
 
 
     char * model_file;

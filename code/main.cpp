@@ -5,6 +5,22 @@
 #include "QueryEngine.h"
 #include  <stdlib.h>
 #include <random>
+#include <chrono>
+#include <cstring>
+
+static bool parse_bool_arg(const char* s){
+    if(!s) return false;
+    if(strcmp(s,"1")==0) return true;
+    if(strcmp(s,"0")==0) return false;
+    // lowercase compare
+    std::string v(s); 
+    for(auto &c: v) c = (char)tolower(c);
+    if(v=="true" || v=="yes" || v=="on") return true;
+    if(v=="false" || v=="no" || v=="off") return false;
+    // fallback: any non-zero numeric prefix
+    if(isdigit((unsigned char)s[0])) return atoi(s)!=0; 
+    return false;
+}
 
 
 using namespace std;
@@ -49,6 +65,7 @@ int main(int argc, char **argv) {
     float μ=0.0;
     float T=1.0;
     float zero_edge_pass_ratio = 0.0f; // ρ
+    bool search_withWeight = false; // 是否使用权重搜索
 
     /* model para */
     char* model_file=nullptr;
@@ -103,6 +120,8 @@ int main(int argc, char **argv) {
                 {"μ",                          required_argument, 0, 2012},
                 {"T",                          required_argument, 0, 2013}, 
                 {"zero_edge_pass_ratio",      required_argument, 0, 2014},
+                {"search_withWeight",          required_argument, 0, 2015},
+
         };
 
         // getopt_long stores the option index here.
@@ -243,6 +262,9 @@ int main(int argc, char **argv) {
                 if (zero_edge_pass_ratio < 0.0f) zero_edge_pass_ratio = 0.0f;
                 if (zero_edge_pass_ratio > 1.0f) zero_edge_pass_ratio = 1.0f;
                 break;
+            case 2015:
+                search_withWeight = parse_bool_arg(optarg);
+                break;
 
             case '?':
 
@@ -320,8 +342,9 @@ int main(int argc, char **argv) {
 
         // queryengine->TrainWeightByLearnDataset(ep, k, mode);
 
-        queryengine->queryBinaryFile(k, mode, thres_probability, μ, T);
-        cout << "[Querying Time] "<< index->time_stats->querying_time <<"(sec)"<<endl;  
+        queryengine->queryBinaryFile(k, mode, search_withWeight, thres_probability, μ, T);
+
+		cout << "[Querying Time] "<< index->time_stats->querying_time <<"(sec)"<<endl;  
         cout << "[QPS] "<< query_dataset_size*1.0/index->time_stats->querying_time <<endl;  
 
 
@@ -364,7 +387,8 @@ int main(int argc, char **argv) {
             index_path, time_series_size, leaf_size,
             nprobes, parallel, nworker, flatt, // flatt是预留参数
             efConstruction, M, efSearch, k, ep, // HNSW parameters
-            model_file, zero_edge_pass_ratio, μ, T, thres_probability,mode
+            model_file, zero_edge_pass_ratio, 
+            search_withWeight, μ, T, thres_probability,mode
         );
                         
        hercules->buildIndexTree();

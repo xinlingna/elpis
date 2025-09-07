@@ -621,9 +621,9 @@ public:
 		if (this->ts_list) {
 			for (int i = 0; i < this->dataset_size; i++) {
 				free(this->ts_list[i].ts);
-				free(this->ts_list[i].ts_index);
+				delete this->ts_list[i].ts_index;  // 修复：使用 delete 而不是 free
 			}
-			free(this->ts_list);
+			delete[] this->ts_list;  // 修复：使用 delete[] 而不是 free
 		}
 		if (this->groundtruth_list) {
 			for (int i = 0; i < this->groundtruth_dataset_size; i++) {
@@ -643,13 +643,13 @@ public:
 		}
 		if (this->knn_distributions) {
 			for (int i = 0; i < this->groundtruth_dataset_size; i++) {
-				free(this->knn_distributions[i]);
+				delete[] this->knn_distributions[i];  // 修复：使用 delete[] 而不是 free
 			}
 			delete[] this->knn_distributions;
 		}
 		if(this->knn_groundtruth) {
 			for (int i = 0; i < this->groundtruth_dataset_size; i++) {
-				free(this->knn_groundtruth[i]);
+				delete[] this->knn_groundtruth[i];  // 修复：使用 delete[] 而不是 free
 			}
 			delete[] this->knn_groundtruth;
 		}

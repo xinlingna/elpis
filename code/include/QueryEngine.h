@@ -46,13 +46,13 @@ public :
     const char * dataset;
     const char * query_filename;
     int query_dataset_size;
-    const char *groundtruth_filename;
+    const char *groundtruth_filename;  // query groundtruth
     unsigned int groundtruth_dataset_size;
     int groundtruth_top_k;
 
     const char* learn_dataset;
     unsigned int  learn_dataset_size;
-    const char* learn_groundtruth_dataset;
+    const char* learn_groundtruth_dataset;  // learn groundtruth
 
     const char * model_file;
     std::vector<std::set<Node*>> candidate_leaf_node;
@@ -89,7 +89,7 @@ public :
 
 
 
-    void queryBinaryFile(unsigned int k, int i, float thres_probability, float μ, float T);
+    void queryBinaryFile(unsigned int k, int i,  bool search_withWeight, float thres_probability, float μ, float T);
 
     float calculateRecall(std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> top_candidates, 
                       int* groundtruth_id, unsigned int k, unsigned int groundtruth_top_k);
@@ -98,7 +98,8 @@ public :
 
     void printKNN(std::vector<std::pair<float,unsigned int>> topkID, int k, double time, queue<unsigned int> &visited, bool para=true);
 
-    void searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, float thres_probability, float μ, float T);
+    void searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index,
+                             bool search_withWeight, float thres_probability, float μ, float T);
     void searchPredictedNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index);
 
     void searchGraphLeaf(Node * node,const void *query_data, size_t k,
@@ -113,12 +114,12 @@ public :
 
     void TrainWeightinGraphLeaf(Node * node,const void *query_data, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
-                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag, IterRefinement_epoch ep=0);
+                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag, IterRefinement_epoch ep=0, int* groundtruth_id=nullptr);
 
 
     void TrainWeightinflat(Node * node, unsigned int entrypoint, const void *data_point, size_t beamwidth,size_t k,
                 std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> & top_candidates1,
-                float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit, IterRefinement_epoch ep);
+                float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit, IterRefinement_epoch ep, int* groundtruth_id=nullptr);
 
     void searchflatWithHopPath(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
                 std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
@@ -137,11 +138,29 @@ public :
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates_internalID,
                           float &bsf, querying_stats &stats, unsigned short *threadvisits, unsigned short &round_visit,
                           std::vector<unsigned int> &hop_path, float μ, float T,float thres_probability);
-                
+
     void updateWeightByHopPath( Node *node, const void *data_point, 
+                            std::vector<unsigned int> hop_path1,
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates1,
+                            int* groundtruth_id=nullptr);
+                
+/*     void updateWeightByHopPath( Node *node, const void *data_point, 
                             std::vector<unsigned int> hop_path1, std::vector<unsigned int> hop_path2,
                             std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates1,
-                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates2);
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates2, 
+                            int* groundtruth_id=nullptr, int groundtruth_k=1); */
+/*         void updateWeightByHopPath(Node *node, const void *data_point, 
+                                    std::vector<unsigned int> hop_path1, std::vector<unsigned int> hop_path2,
+                                    std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates1,
+                                    std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates2);
+      */
+    
+    // 辅助函数：更新路径权重
+    void updatePathWeights(hnswlib::HierarchicalNSW<float>* g, 
+                          const std::vector<unsigned int>& hop_path, 
+                          float weight_update, 
+                          float momentum_decay, 
+                          float weight_bound);
 
 
     void setEF(Node *node, int ef);

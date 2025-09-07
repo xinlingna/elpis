@@ -449,6 +449,13 @@ bool Index::insertTS(VectorWithIndex* vwi )  {
 
             //copying the contents of the the node being split in case it gets flushed from memory to disk
             VectorWithIndex *ts_list = node->getTS(this);
+            
+            // 🛡️ CRITICAL FIX: 添加空指针检查，防止程序崩溃
+            if (ts_list == nullptr) {
+                std::cerr << "[FATAL ERROR] Failed to get time series data from node " << node->id 
+                          << ". Memory allocation failed. Cannot proceed with node splitting." << std::endl;
+                return false; // 或者抛出异常/返回错误码
+            }
 
             cout <<"[SPLITTING] Leaf Node "<< node->id
                  <<", of node size "<< node->node_size << ", and disk size "<<node->file_buffer->disk_count

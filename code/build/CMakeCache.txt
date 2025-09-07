@@ -235,6 +235,9 @@ ELPIS_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 ELPIS_SOURCE_DIR:STATIC=/home/xln/elpis/code
 
+//The directory containing a CMake configuration file for TBB.
+TBB_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/TBB
+
 //The directory containing a CMake configuration file for boost_chrono.
 boost_chrono_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/boost_chrono-1.83.0
 
@@ -249,6 +252,9 @@ boost_system_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/boost_system-1.83.0
 
 //The directory containing a CMake configuration file for boost_timer.
 boost_timer_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/boost_timer-1.83.0
+
+//Dependencies for the target
+libelpis_LIB_DEPENDS:STATIC=general;TBB::tbb;
 
 
 ########################
@@ -331,6 +337,8 @@ CMAKE_GENERATOR_INSTANCE:INTERNAL=
 CMAKE_GENERATOR_PLATFORM:INTERNAL=
 //Name of generator toolset.
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
+//Test CMAKE_HAVE_LIBC_PTHREAD
+CMAKE_HAVE_LIBC_PTHREAD:INTERNAL=1
 //Source directory with the top level CMakeLists.txt file for this
 // project
 CMAKE_HOME_DIRECTORY:INTERNAL=/home/xln/elpis/code
@@ -400,6 +408,8 @@ CMAKE_UNAME:INTERNAL=/usr/bin/uname
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding Boost
 FIND_PACKAGE_MESSAGE_DETAILS_Boost:INTERNAL=[/usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake][cfound components: chrono timer system program_options ][v1.83.0()]
+//Details about finding Threads
+FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 //ADVANCED property for variable: boost_chrono_DIR

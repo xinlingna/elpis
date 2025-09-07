@@ -20,7 +20,7 @@
 			 char *index_path, unsigned int timeseries_size, unsigned int leaf_size,
              unsigned int nprobes, bool parallel, unsigned int nworker, bool flatt,
 			 int efConstruction, unsigned int m, int efSearch, unsigned int k, unsigned int ep,
-			 char *model_file, float zero_edge_pass_ratio, float μ, float T, float thres_probability, int mode)
+			 char *model_file, float zero_edge_pass_ratio, bool search_withWeight, float μ, float T, float thres_probability, int mode)
 	{
 		/* 
 		 * nprobes：搜索的叶子节点限制
@@ -94,6 +94,7 @@
 		this->ep=ep;
 		this->model_file=model_file;
 		this->zero_edge_pass_ratio=zero_edge_pass_ratio;
+		this->search_withWeight=search_withWeight;
 		this->μ=μ;
 		this->T=T;
 		this->thres_probability=thres_probability;
@@ -818,7 +819,7 @@
 			{
 				int ts_key=this->groundtruth_list[i][j];
 				if(ts_key>=this->dataset_size || ts_key<0){
-					cerr<<"ts_key="<<ts_key<<"is not between[0,"<<this->dataset_size<<"]"<<endl;
+					cerr<<"ts_key="<<ts_key<<" is not between[0,"<<this->dataset_size<<"]"<<endl;
 					exit(-1);
 				}
 
@@ -1024,10 +1025,14 @@
 											this->index, this->efSearch, this->nprobes, this->parallel, 
 											this->nworker, this->flatt, this->k, this->ep, 
 											this->model_file, this->zero_edge_pass_ratio);
-		// this->leafNodeID2Node();
 		this->searchCandidateLeafNode();
 
-		this->queryengine->queryBinaryFile(this->k, this->mode, this->thres_probability, this->μ, this->T);
+		this->queryengine->queryBinaryFile(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T);
+
+		cout << "[Querying Time] "<< this->index->time_stats->querying_time <<"(sec)"<<endl;  
+        cout << "[QPS] "<< query_dataset_size*1.0/index->time_stats->querying_time <<endl;  
+		double averageRecall = this->queryengine->calculateAverageRecall();
+		cout << "[Average Recall] "<< averageRecall << endl;
 		this->index->write(); // write hercules tree +HNSW of leaf node
 	}
 
@@ -1047,8 +1052,8 @@
 			for (size_t j = 0; j < selected_k; j++)
 			{
 				int ts_key = this->learn_groundtruth_list[i][j];
-				if (ts_key >= this->learn_dataset_size || ts_key < 0) {
-					cout << "ts_key=" << ts_key << "is not between[0," << this->learn_dataset_size << "]" << endl;
+				if (ts_key >= this->dataset_size || ts_key < 0) {
+					cout << "ts_key=" << ts_key << " is not between[0," << this->dataset_size << "]" << endl;
 					exit(-1);
 				}
 
@@ -1174,9 +1179,9 @@
 		if (this->ts_list) {
 			for (int i = 0; i < this->dataset_size; i++) {
 				free(this->ts_list[i].ts);
-				free(this->ts_list[i].ts_index);
+				delete this->ts_list[i].ts_index;  // 修复：使用 delete 而不是 free
 			}
-			free(this->ts_list);
+			delete[] this->ts_list;  // 修复：使用 delete[] 而不是 free
 		}
 		if (this->groundtruth_list) {
 			for (int i = 0; i < this->groundtruth_dataset_size; i++) {
@@ -1203,13 +1208,13 @@
 		}
 		if (this->knn_distributions) {
 			for (int i = 0; i < this->groundtruth_dataset_size; i++) {
-				free(this->knn_distributions[i]);
+				delete[] this->knn_distributions[i];  // 修复：使用 delete[] 而不是 free
 			}
 			delete[] this->knn_distributions;
 		}
 		if(this->knn_groundtruth) {
 			for (int i = 0; i < this->groundtruth_dataset_size; i++) {
-				free(this->knn_groundtruth[i]);
+				delete[] this->knn_groundtruth[i];  // 修复：使用 delete[] 而不是 free
 			}
 			delete[] this->knn_groundtruth;
 		}

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <stdexcept>
 #include <thread>
 #include <ctime>
 #include<time.h>
@@ -9,6 +10,7 @@
 #include<set>
 #include "QueryEngine.h"
 #include "grasp_mu_bisect.h"
+#include <tbb/concurrent_unordered_map.h>
 QueryEngine::~QueryEngine() {
     // if (pq) pqueue_free(pq);  // 释放pq发生段错误，不释放内存泄漏
     // if(results) free(results);
@@ -181,7 +183,8 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
        // qwdata[0].localknn = static_cast<float *>(malloc(k*sizeof(float)));
         qwdata[0].local_nprobes += (nprobes-1)%this->nworker;
         qwdata[0].stats = &stats;                                // global  stats
-        qwdata[0].top_candidates = &top_candidates;             //  global   top_candidates
+        // qwdata[0].top_candidates = &top_candidates;             //  global   top_candidates
+        qwdata[0].top_candidates = new std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>>();
 
         omp_set_dynamic(0);
         omp_set_num_threads(this->nworker);
@@ -226,7 +229,7 @@ void QueryEngine::setEF(Node * node, int ef){
         }
     }
 }
-void QueryEngine::queryBinaryFile( unsigned int k, int mode, float thres_probability, float μ, float T) {
+void QueryEngine::queryBinaryFile( unsigned int k, int mode, bool search_withWeight, float thres_probability, float μ, float T) {
 
     if(this->groundtruth_dataset_size != this->query_dataset_size ){
         throw std::runtime_error("groundtruth dataset size != query dataset size");
@@ -291,7 +294,7 @@ void QueryEngine::queryBinaryFile( unsigned int k, int mode, float thres_probabi
         /* load groundtruth */
         fread(groundtruth_id, sizeof(int), groundtruth_top_k, this->groundtruth_file);    
 
-        searchNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded, thres_probability, μ, T);
+        searchNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded, search_withWeight, thres_probability, μ, T);
 
         q_loaded++;
 
@@ -305,7 +308,8 @@ void QueryEngine::queryBinaryFile( unsigned int k, int mode, float thres_probabi
 
 }
 
-void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, float thres_probability, float μ, float T) {
+void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, unsigned int k, unsigned int nprobes, unsigned int query_index, 
+                                      bool search_withWeight, float thres_probability, float μ, float T) {
 
     stats.reset();
     Time start = now();    
@@ -363,7 +367,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
     // 搜索top-k作为参考
     searchGraphLeaf(App_node,query_ts, k,
                     top_candidates, App_bsf, stats, flags,
-                    curr_flag, false);
+                    curr_flag, search_withWeight, thres_probability, μ, T);
 
     cout<<"************************************************"<<endl;
     cout<<"query_index:"<<query_index<<endl;
@@ -453,25 +457,25 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
         }
         stats.num_candidates = candidates_count;
 
-        // 将所有叶子节点的距离写入文件
-        // {
-        //     //将所有叶子节点的距离进行排序
-        //     sort(all_leaf_nodes_dis+1, all_leaf_nodes_dis + leaf_node_count);
-        //     std::string dis_dataset_dir = this->index->index_path;
-        //     std::string leaf_nodes_dis_file = dis_dataset_dir + "/leaf_nodes_dis.txt";
+/*         将所有叶子节点的距离写入文件
+        {
+            //将所有叶子节点的距离进行排序
+            sort(all_leaf_nodes_dis+1, all_leaf_nodes_dis + leaf_node_count);
+            std::string dis_dataset_dir = this->index->index_path;
+            std::string leaf_nodes_dis_file = dis_dataset_dir + "/leaf_nodes_dis.txt";
          
-        //     std::ofstream outfile(leaf_nodes_dis_file, std::ios::app);
-        //     if (!outfile) {
-        //         std::cerr << "Cannot open file: " << leaf_nodes_dis_file << std::endl;
-        //     }
-        //     outfile<<top1_distance<<" ";
-        //     for (int i = 1; i < leaf_node_count; i++) {
-        //         outfile << all_leaf_nodes_dis[i] << " ";
-        //     }
-        //     outfile<<endl;
-        //     outfile.close();
-        // }
-
+            std::ofstream outfile(leaf_nodes_dis_file, std::ios::app);
+            if (!outfile) {
+                std::cerr << "Cannot open file: " << leaf_nodes_dis_file << std::endl;
+            }
+            outfile<<top1_distance<<" ";
+            for (int i = 1; i < leaf_node_count; i++) {
+                outfile << all_leaf_nodes_dis[i] << " ";
+            }
+            outfile<<endl;
+            outfile.close();
+        }
+ */
         // 将搜索的叶子节点的数量和计算的次数写入文件
         /* char num_candidates_file[256];
         char num_computation_count[256];
@@ -520,11 +524,6 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
 
         // 3.2 开始并行搜索
             {
-                /* 
-                 * num_threads(nworker)： 要启动的线程数nworker
-                 * private(node, bsf, worker)：每个线程都有自己独立的 node、bsf 和 worker 变量
-                 * shared(qwdata, candidates_count, candidates,  query_ts, k)：所有线程的共享变量
-                 */
  #pragma omp parallel num_threads(nworker) private(node, bsf, worker) shared(qwdata, candidates_count, candidates,  query_ts, k)
                 {
                     bsf = FLT_MAX;
@@ -545,7 +544,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
                             worker->stats->num_leaf_searched++;
 
                             searchGraphLeaf(node.node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
-                                             *(worker->stats), worker->flags, worker->curr_flag, true, thres_probability, μ, T);
+                                             *(worker->stats), worker->flags, worker->curr_flag, search_withWeight, thres_probability, μ, T);
 
                             if (worker->top_candidates->top().first < bsf) {
                                 pthread_rwlock_wrlock(&lock_bsf);
@@ -560,7 +559,7 @@ void QueryEngine::searchNpLeafParallel(ts_type *query_ts, int* groundtruth_id, u
 
   
     // step4： 合并中间结果
-            for(int i=1; i<nworker; i++){
+            for(int i=0; i<nworker; i++){
                 if(qwdata[i].stats->num_leaf_searched==0){
                     while(qwdata[i].top_candidates->size()>0){
                         qwdata[i].top_candidates->pop();
@@ -1191,7 +1190,8 @@ void QueryEngine::searchflat(Node * node, unsigned int entrypoint, const void *d
 /* 迭代训练bottom layer 边权 */
 void QueryEngine::TrainWeightinflat(Node * node, unsigned int entrypoint, const void *data_point, size_t beamwidth,size_t k,
                 std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> & top_candidates2,
-                float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit, IterRefinement_epoch ep){
+                float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit, IterRefinement_epoch ep,
+                int* groundtruth_id){
 
         std::vector<unsigned int> hop_path1;
         std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> top_candidates_internalID1;
@@ -1208,9 +1208,10 @@ void QueryEngine::TrainWeightinflat(Node * node, unsigned int entrypoint, const 
              * beamwidth:
              * k:
              */
-            searchflatWithHopPath(node, entrypoint, data_point, std::max(beamwidth/2, k), k , top_candidates1, top_candidates_internalID1, bsf, stats, threadvisits, round_visit, hop_path1); // 差的结果配置
+            // searchflatWithHopPath(node, entrypoint, data_point, std::max(beamwidth/2, k), k , top_candidates1, top_candidates_internalID1, bsf, stats, threadvisits, round_visit, hop_path1); // 差的结果配置
             searchflatWithHopPath(node, entrypoint, data_point, std::max(beamwidth, k), k, top_candidates2, top_candidates_internalID2, bsf, stats, threadvisits, round_visit, hop_path2); // 好的结果配置
-            updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2);
+            // updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2, groundtruth_id);
+            updateWeightByHopPath(node, data_point, hop_path2,  top_candidates_internalID2, groundtruth_id);
 
         }else{
             // 退火温度
@@ -1235,33 +1236,37 @@ void QueryEngine::TrainWeightinflat(Node * node, unsigned int entrypoint, const 
             if (target_degree <= 0.0) target_degree = neighborhood_mu; // 兜底
             float μ = static_cast<float>(grasp_find_mu_by_bisection(local_edge_weights, T, target_degree));
 
-            searchflatWithWeight_HopPath(node, entrypoint, data_point,  beamwidth/2, k, top_candidates1, top_candidates_internalID1,
-                                        bsf, stats, threadvisits,round_visit, hop_path1, μ, T, thres_probabilit); // 差的结果配置
+            // searchflatWithWeight_HopPath(node, entrypoint, data_point, std::max(beamwidth/2, k), k, top_candidates1, top_candidates_internalID1,
+            //                             bsf, stats, threadvisits,round_visit, hop_path1, μ, T, thres_probabilit); // 差的结果配置
 
-            searchflatWithWeight_HopPath(node, entrypoint, data_point,  beamwidth, k ,top_candidates2, top_candidates_internalID2,
+            searchflatWithWeight_HopPath(node, entrypoint, data_point, std::max(beamwidth, k), k ,top_candidates2, top_candidates_internalID2,
                                         bsf, stats, threadvisits,round_visit, hop_path2, μ, T, thres_probabilit);
 
-            updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2);
+            // updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2, groundtruth_id);
+            // updateWeightByHopPath(node, data_point, hop_path1, hop_path2, top_candidates_internalID1, top_candidates_internalID2);
+            updateWeightByHopPath(node, data_point, hop_path2, top_candidates_internalID2, groundtruth_id);
         }
 }
 unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float, unsigned int>>> top_candidates) {
+    // 创建队列的副本，避免破坏原始队列
+    auto tmp_queue = top_candidates;  // 复制构造函数
+    
     // 临时保存最大堆的元素
     std::vector<std::pair<float, unsigned int>> candidates;
 
-    // 将最大堆中的元素转移到一个临时容器
-    while (!top_candidates.empty()) {
-        candidates.push_back(top_candidates.top());
-        top_candidates.pop();
+    // 将副本队列中的元素转移到一个临时容器
+    while (!tmp_queue.empty()) {
+        candidates.push_back(tmp_queue.top());
+        tmp_queue.pop();
     }
 
     // 返回距离最小的元素的节点下标(internal ID)
     return candidates.back().second;
 }
-/*
- * top_candidates：save top-k results
- * hop_path: save hop from top-1 node to entrypoint
- */
-/* void QueryEngine::searchflatWithHopPath(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
+
+
+// 原始版本
+/*void QueryEngine::searchflatWithHopPath(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
                 std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                 std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates_internalID,
                 float &bsf, querying_stats &stats, unsigned short *threadvisits, unsigned short &round_visit,
@@ -1291,9 +1296,7 @@ unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std
     while (candidate_set.size() > 0) {
         auto currnode = candidate_set.top();
 
-        if ((-currnode.first) > LBGRAPH) {
-            break;
-        }
+        if ((-currnode.first) > LBGRAPH)  break;
         candidate_set.pop();
 
         // center point 
@@ -1326,7 +1329,7 @@ unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std
 #endif
             if (dist < bsf) bsf = dist;
 
-            if (top_candidates.size() < beamwidth || LBGRAPH > dist) {
+            if (top_candidates_internalID.size() < beamwidth || LBGRAPH > dist) {
                 candidate_set.emplace(-dist, neighborid);
 
                 _mm_prefetch(g->data_level0_memory_ + candidate_set.top().second * g->size_data_per_element_ +
@@ -1335,12 +1338,14 @@ unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std
                 top_candidates.emplace(dist, currObjLable);
                 top_candidates_internalID.emplace(dist, neighborid);
 
-
-                if (top_candidates.size() > beamwidth)
+                // 修复：同步裁剪两个队列，保持一致性
+                if (top_candidates_internalID.size() > beamwidth) {
                     top_candidates.pop();
+                    top_candidates_internalID.pop(); 
+                }
 
-                if (!top_candidates.empty())
-                    LBGRAPH = top_candidates.top().first;
+                if (!top_candidates_internalID.empty())
+                    LBGRAPH = top_candidates_internalID.top().first;
 
 
                 parent_map[neighborid] = currnodeid; // Store the parent node
@@ -1371,8 +1376,9 @@ unsigned int getTop1Index(std::priority_queue<std::pair<float,unsigned int>, std
     std::reverse(final_path.begin(), final_path.end());
     hop_path = final_path;
 }
- */
+*/
 
+// 修改版本
 void QueryEngine::searchflatWithHopPath(
     Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
     std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
@@ -1389,7 +1395,8 @@ void QueryEngine::searchflatWithHopPath(
     float LBGRAPH;
 
     // 记录父子关系以回溯 hop path
-    std::unordered_map<unsigned int, unsigned int> parent_map;
+    //std::unordered_map<unsigned int, unsigned int> parent_map;
+    tbb::concurrent_unordered_map<unsigned int, unsigned int> parent_map;
 
     // ---- 初始化：仅维护 internalID 堆 ----
     float dist = g->fstdistfunc_(data_point, g->getDataByInternalId(entrypoint), g->dist_func_param_);
@@ -1399,13 +1406,14 @@ void QueryEngine::searchflatWithHopPath(
 #endif
     LBGRAPH = dist;
 
-    // CHANGED: 只在 internalID 堆里放入 entrypoint
+    // 初始化：两堆都放入 entrypoint，但后续以 internalID 堆为唯一控制来源
     top_candidates_internalID.emplace(dist, entrypoint);                   // max-heap by dist
+    top_candidates.emplace(dist, static_cast<unsigned int>(entrypointLabel));
     candidate_set.emplace(-dist, entrypoint);                              // 小根 via 负号
     threadvisits[entrypoint] = round_visit;
 
     // 主循环
-    while (!candidate_set.empty()) {
+    while (candidate_set.size() > 0) {
         auto currnode = candidate_set.top();
 
         if ((-currnode.first) > LBGRAPH) break;
@@ -1430,26 +1438,24 @@ void QueryEngine::searchflatWithHopPath(
             threadvisits[neighborid] = round_visit;
 
             char *currObj1 = g->getDataByInternalId(neighborid);
-            auto d = g->fstdistfunc_(data_point, currObj1, g->dist_func_param_);
+            auto dist = g->fstdistfunc_(data_point, currObj1, g->dist_func_param_);
 #ifdef CALC_DC
             stats.distance_computations_bsl++;
 #endif
-            if (d < bsf) bsf = d;
+            if (dist < bsf) bsf = dist;
 
-            // CHANGED: 仅依据 internalID 堆做 beam 控制与 LBGRAPH 更新
-            if (top_candidates_internalID.size() < beamwidth || LBGRAPH > d) {
-                candidate_set.emplace(-d, neighborid);
+            // 控制逻辑仅依赖 internalID 堆；但两堆都同步插入/裁剪
+            if (top_candidates_internalID.size() < beamwidth || LBGRAPH > dist) {
+                candidate_set.emplace(-dist, neighborid);
                 _mm_prefetch(g->data_level0_memory_ + candidate_set.top().second * g->size_data_per_element_ + g->offsetLevel0_, _MM_HINT_T0);
 
-                top_candidates_internalID.emplace(d, neighborid);
+                top_candidates_internalID.emplace(dist, neighborid);
+                top_candidates.emplace(dist, static_cast<unsigned int>(g->getExternalLabel(neighborid)));
 
-                if (top_candidates_internalID.size() > beamwidth) {
-                    top_candidates_internalID.pop(); // CHANGED: 只裁 internalID 堆
-                }
+                if (top_candidates_internalID.size() > beamwidth) top_candidates_internalID.pop();
+                if (top_candidates.size() > beamwidth) top_candidates.pop();
 
-                if (!top_candidates_internalID.empty()) {
-                    LBGRAPH = top_candidates_internalID.top().first; // CHANGED: 从 internalID 堆读 LB
-                }
+                if (!top_candidates_internalID.empty()) LBGRAPH = top_candidates_internalID.top().first;
 
                 parent_map[neighborid] = currnodeid; // 记录父子关系
             }
@@ -1458,6 +1464,7 @@ void QueryEngine::searchflatWithHopPath(
 
     // 截到 top-k（internalID 堆）
     while (top_candidates_internalID.size() > k) top_candidates_internalID.pop();
+    while (top_candidates.size() > k) top_candidates.pop();
 
     // --- 回溯 hop path ---
     unsigned int current_node = getTop1Index(top_candidates_internalID);
@@ -1472,62 +1479,260 @@ void QueryEngine::searchflatWithHopPath(
     }
     final_path.push_back(entrypoint);
     std::reverse(final_path.begin(), final_path.end());
-    hop_path = final_path;
+    hop_path = std::vector<unsigned int>(final_path);
 
-    // --- NEW: 结束后重建 top_candidates（映射外部标签），使两个堆“距离集合”一致 ---
-    // 注意：不能直接遍历原堆（会破坏内容），先复制一份临时堆
-    std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> tmp = top_candidates_internalID;
-
-    // 先清空外部堆，随后按 internalID 堆的元素逐个映射再插入
-    while (!top_candidates.empty()) top_candidates.pop(); // CHANGED: 保证外部堆完全由 internalID 重建
-
-    // 将 internalID 映射为 externalLabel 后放入 top_candidates
-    // 这样两个堆包含的距离完全一致，只是第二键不同（不再用于搜索逻辑）
-    while (!tmp.empty()) {
-        auto p = tmp.top(); tmp.pop();
-        float d = p.first;
-        unsigned int internalId = p.second;
-        int externalLabel = g->getExternalLabel(internalId); // 映射
-        top_candidates.emplace(d, static_cast<unsigned int>(externalLabel));
-    }
+    // 两堆已同步裁剪，无需重建
 }
 
-void QueryEngine::updateWeightByHopPath( Node *node, const void *data_point, 
+/* // 原始版本
+void QueryEngine::updateWeightByHopPath(Node *node, const void *data_point, 
                             std::vector<unsigned int> hop_path1, std::vector<unsigned int> hop_path2,
-                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>>  top_candidates1,
-                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>>  top_candidates2){
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates1,
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates2){
     
-    // 获取 top_candidates1 和 top_candidates2 中的最优节点
-    unsigned int top1 = getTop1Index(top_candidates1); // top-1 节点在候选集1中，带宽低的搜索结果
-    unsigned int top2 = getTop1Index(top_candidates2); // top-1 节点在候选集2中，带宽高的搜索结果
-    if(top1==top2)
-            return ;
+    unsigned int top1 = getTop1Index(top_candidates1);
+    unsigned int top2 = getTop1Index(top_candidates2);
+    if(top1 == top2) return;
 
-    // 分别计算top1，top2与data_point之间的距离
     if(node->leafgraph == nullptr) {
         std::cerr << "Warning: updateWeightByHopPath called on leaf with null leafgraph, skipping..." << std::endl;
         return;
     }
+    
     auto g = node->leafgraph;
     float dist1 = g->fstdistfunc_(data_point, g->getDataByInternalId(top1), g->dist_func_param_);
     float dist2 = g->fstdistfunc_(data_point, g->getDataByInternalId(top2), g->dist_func_param_);
-    float new_weight = ((dist1 *1.0 / dist2) - 1.0f) * 0.1; 
+    
+    // 添加安全检查，避免除零
+    if(std::fabs(dist2) < 1e-12f) return;
+    
+    // 计算权重更新，添加范围限制
+    float ratio = dist1 / dist2;
+    float new_weight = (ratio - 1.0f) * 0.1f ; // learning_rate=1.0f
+    
+    if(ratio<1){  // top1更好，增强hop_path1
+        for (size_t i = 0; i < hop_path1.size() - 1; ++i) {
+            unsigned int current_node = hop_path1[i];
+            unsigned int next_node = hop_path1[i + 1];
+            
+            if(g->edgeWeightList_ == nullptr) throw std::runtime_error("g->edgeWeightList_==nullptr");
+            
+            Edge &current_edge = g->edgeWeightList_[current_node][next_node];
+            
+            current_edge.weight+= -new_weight;
+        }
+
+    }else{
+        for (size_t i = 0; i < hop_path2.size() - 1; ++i) {
+            unsigned int current_node = hop_path2[i];
+            unsigned int next_node = hop_path2[i + 1];
+            
+            if(g->edgeWeightList_ == nullptr) throw std::runtime_error("g->edgeWeightList_==nullptr");
+            
+            Edge &current_edge = g->edgeWeightList_[current_node][next_node];
+
+            current_edge.weight += new_weight;
+        }
+    }
+
+}
+ */
+
+// 改进版本2：基于真实最近邻的监督权重更新
+void QueryEngine::updateWeightByHopPath( Node *node, const void *data_point, 
+                            std::vector<unsigned int> hop_path,
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>>  top_candidates,
+                            int* groundtruth_id) {
+    
+    // 安全检查
+    if(node->leafgraph == nullptr) {
+        throw std::runtime_error("Warning: updateWeightByHopPath called on leaf with null leafgraph, skipping...");
+    }
+    auto g = node->leafgraph;
+    
+    unsigned int top1 = getTop1Index(top_candidates); 
+    
+    // 2. 计算距离用于质量评估
+    float dist1 = g->fstdistfunc_(data_point, g->getDataByInternalId(top1), g->dist_func_param_);
 
 
-    // 遍历 hop_path2 并更新每条边的权重
-    for (size_t i = 0; i < hop_path2.size() - 1; ++i) {
-        unsigned int current_node = hop_path2[i]; // 当前节点
-        unsigned int next_node = hop_path2[i + 1]; // 下一个节点（邻居）
+    FILE *dataset_file = fopen(this->dataset, "rb");
+    if (dataset_file == nullptr) {
+        fprintf(stderr, "Dataset file %s not found!\n", this->dataset);
+        exit(-1);
+    }
+    // 根据groundtruth_id[0]找到对应的向量
+    fseek(dataset_file, groundtruth_id[0] * this->index->index_setting->timeseries_size * sizeof(ts_type), SEEK_SET);
+    ts_type *top1_vector = static_cast<ts_type *>(malloc_search(sizeof(ts_type) * this->index->index_setting->timeseries_size));
+    fread(top1_vector, sizeof(ts_type), this->index->index_setting->timeseries_size, dataset_file);
+    
+    float top1_distance = 0;
+    // 计算top1向量与query_ts的欧几里得距离
+    const ts_type* q = static_cast<const ts_type*>(data_point);
+    for (int i = 0; i < this->index->index_setting->timeseries_size; i++) {
+        top1_distance += (q[i] - top1_vector[i]) * (q[i] - top1_vector[i]);
+    }
+    // cout<<"top1_distance:"<<top1_distance<<endl;
+    fclose(dataset_file);
 
-        // 查找当前边的权重结构体: 注意需要引用
-        if(g->edgeWeightList_==nullptr) throw::runtime_error("g->edgeWeightList_==nullptr");
+    // 计算dist1与top1_distance的差距，差距越小，权重更新越大
+    float diff_ratio = std::fabs(dist1 - top1_distance) / top1_distance;
+    float new_weight =  1.0f / (1.0f + diff_ratio); // learning_rate=1.0f
+    for (size_t i = 0; i < hop_path.size() - 1; ++i) {
+        unsigned int current_node = hop_path[i];
+        unsigned int next_node = hop_path[i + 1];
+        
+        if(g->edgeWeightList_ == nullptr) throw std::runtime_error("g->edgeWeightList_==nullptr");
         
         Edge &current_edge = g->edgeWeightList_[current_node][next_node];
+        
+        current_edge.weight+= new_weight;
+    }
+}
 
-        // 使用 L(q, G, G') 公式来更新边的权重 ：L(q, G, G') = δ<p', q> / δ<p, q> - 1
-        // float new_weight = std::max((dist1 *1.0 / dist2) - 1.0f, 0.0) * 0.1; 
+/* // 改进版本3：基于真实最近邻的监督权重更新
+void QueryEngine::updateWeightByHopPath( Node *node, const void *data_point, 
+                            std::vector<unsigned int> hop_path1, std::vector<unsigned int> hop_path2,
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>>  top_candidates1,
+                            std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>>  top_candidates2,
+                            int* groundtruth_id, int groundtruth_k) {
+    
+    // 安全检查
+    if(node->leafgraph == nullptr) {
+        throw std::runtime_error("Warning: updateWeightByHopPath called on leaf with null leafgraph, skipping...");
+    }
+    auto g = node->leafgraph;
+    
+    // 获取 top_candidates1 和 top_candidates2 中的最优节点
+    unsigned int top1 = getTop1Index(top_candidates1); // top_candidates1包含的搜索最近邻，带宽低的搜索结果
+    unsigned int top2 = getTop1Index(top_candidates2); // top_candidates2包含的搜索最近邻，带宽高的搜索结果
 
-        current_edge.weight += new_weight; // 更新权重
+    if(top1 == top2) {
+        return; // 两个搜索找到相同结果，无需更新
+    }
+
+    
+    // 1. 检查哪个搜索结果包含真实最近邻
+    bool top1_contains_gt = false;
+    bool top2_contains_gt = false;
+    
+    // 检查groundtruth中是否包含我们的搜索结果
+    if(groundtruth_id != nullptr && groundtruth_k > 0) {
+        for(unsigned int i = 0; i < groundtruth_k; i++) {
+            if(static_cast<unsigned int>(groundtruth_id[i]) == top1) {
+                top1_contains_gt = true;
+                break;
+            }
+            if(static_cast<unsigned int>(groundtruth_id[i]) == top2) {
+                top2_contains_gt = true;
+                break;
+            }
+        }
+    }
+    
+    // 2. 计算距离用于质量评估
+    float dist1 = g->fstdistfunc_(data_point, g->getDataByInternalId(top1), g->dist_func_param_);
+    float dist2 = g->fstdistfunc_(data_point, g->getDataByInternalId(top2), g->dist_func_param_);
+    
+    // 安全检查：避免除零
+    const float epsilon = 1e-12f;
+    if(std::fabs(dist1) < epsilon || std::fabs(dist2) < epsilon) {
+        return;
+    }
+    
+    // 3. 基于Ground Truth的权重更新策略
+    float learning_rate = 0.2f; // 监督学习可以使用更高的学习率
+    const float momentum_decay = 0.95f;
+    const float weight_bound = 5.0f;
+    
+    // 情况1：top2包含真实最近邻，需要增强hop_path2
+    if(top2_contains_gt && !top1_contains_gt) {
+        std::cout << "Ground Truth found in top2! Enhancing hop_path2 weights..." << std::endl;
+        
+        // 计算奖励权重：距离越小奖励越大
+        float reward_strength = learning_rate * std::exp(-dist2);
+        
+        // 增强找到真实最近邻的路径
+        updatePathWeights(g, hop_path2, reward_strength, momentum_decay, weight_bound);
+        
+        // // 轻微惩罚没找到真实最近邻的路径
+        // float penalty_strength = -learning_rate * 0.3f;
+        // updatePathWeights(g, hop_path1, penalty_strength, momentum_decay, weight_bound);
+    }
+    // 情况2：top1包含真实最近邻，需要增强hop_path1
+    else if(top1_contains_gt && !top2_contains_gt) {
+        std::cout << "Ground Truth found in top1! Enhancing hop_path1 weights..." << std::endl;
+        
+        // 计算奖励权重
+        float reward_strength = learning_rate * std::exp(-dist1);
+        
+        // 增强找到真实最近邻的路径
+        updatePathWeights(g, hop_path1, reward_strength, momentum_decay, weight_bound);
+        
+        // // 轻微惩罚没找到真实最近邻的路径  
+        // float penalty_strength = -learning_rate * 0.3f;
+        // updatePathWeights(g, hop_path2, penalty_strength, momentum_decay, weight_bound);
+    }
+    // 情况3：两个都包含真实最近邻，选择距离更小的加强
+    else if(top1_contains_gt && top2_contains_gt) {
+        std::cout << "Both contain Ground Truth! Enhancing better path..." << std::endl;
+        
+        if(dist2 < dist1) {
+            // top2距离更小，增强hop_path2
+            float reward_strength = learning_rate * 0.5f;
+            updatePathWeights(g, hop_path2, reward_strength, momentum_decay, weight_bound);
+        } else {
+            // top1距离更小，增强hop_path1  
+            float reward_strength = learning_rate * 0.5f;
+            updatePathWeights(g, hop_path1, reward_strength, momentum_decay, weight_bound);
+        }
+    }
+    // 情况4：都没找到真实最近邻，使用保守的相对更新
+    else {
+        std::cout << "No Ground Truth found in either result. Using conservative update..." << std::endl;
+        
+        // 降低学习率，避免从错误结果中学习
+        float conservative_rate = learning_rate * 0.1f;
+        
+        // 仍然基于相对质量进行微调，但要很保守
+        if(dist2 < dist1) {
+            // top2相对更好，给予小幅奖励
+            float small_reward = conservative_rate * std::exp(-dist2 * 2.0f);
+            updatePathWeights(g, hop_path2, small_reward, momentum_decay, weight_bound);
+        } else {
+            // top1相对更好，给予小幅奖励
+            float small_reward = conservative_rate * std::exp(-dist1 * 2.0f);
+            updatePathWeights(g, hop_path1, small_reward, momentum_decay, weight_bound);
+        }
+    }
+}
+ */
+
+
+// 辅助函数：更新路径权重
+void QueryEngine::updatePathWeights(hnswlib::HierarchicalNSW<float>* g, 
+                                   const std::vector<unsigned int>& hop_path, 
+                                   float weight_update, 
+                                   float momentum_decay, 
+                                   float weight_bound) {
+    for (size_t i = 0; i < hop_path.size() - 1; ++i) {
+        unsigned int current_node = hop_path[i];
+        unsigned int next_node = hop_path[i + 1];
+        
+        if(g->edgeWeightList_==nullptr) {
+            throw std::runtime_error("g->edgeWeightList_==nullptr");
+        }
+        
+        Edge &current_edge = g->edgeWeightList_[current_node][next_node];
+        
+        // 应用动量衰减
+        current_edge.weight *= momentum_decay;
+        
+        // 添加权重更新
+        current_edge.weight += weight_update;
+        
+        // 边界限制
+        current_edge.weight = std::max(-weight_bound, std::min(weight_bound, current_edge.weight));
     }
 }
 
@@ -1590,19 +1795,16 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
             float edge_prob = 1.0f / (1 + exp(-((current_edge->weight + μ) / T)));
             if (edge_prob <= thres_probability) {
                 continue;
-                // // 对权重为0的边按概率 ρ 放行
-                // if (std::fabs(current_edge->weight) <= 1e-12f) {
-                //     thread_local std::mt19937 rng(
-                //         std::hash<std::thread::id>{}(std::this_thread::get_id()) ^ static_cast<uint32_t>(std::time(nullptr))
-                //     );
-                //     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-                //     if (dist(rng) >= this->zero_edge_pass_ratio) {
-                //         continue;
-                //     }
-                // } else {
-                //     // 非0边保持原来的剪枝逻辑
-                //     continue;
-                // }
+                // 对权重为0的边按概率 ρ 放行
+/*                 if (std::fabs(current_edge->weight) <= 1e-12f) {
+                    thread_local std::mt19937 rng(
+                        std::hash<std::thread::id>{}(std::this_thread::get_id()) ^ static_cast<uint32_t>(std::time(nullptr))
+                    );
+                    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+                    if (dist(rng) > this->zero_edge_pass_ratio) {
+                        continue;
+                    }
+                } */
             }
 
             threadvisits[neighborid] = round_visit; // marked visited
@@ -1618,8 +1820,7 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
             if (top_candidates.size() < beamwidth || LBGRAPH > dist) {
                 candidate_set.emplace(-dist, neighborid);
 
-                _mm_prefetch(g->data_level0_memory_ + candidate_set.top().second * g->size_data_per_element_ +
-                             g->offsetLevel0_, _MM_HINT_T0);
+                _mm_prefetch(g->data_level0_memory_ + candidate_set.top().second * g->size_data_per_element_ + g->offsetLevel0_, _MM_HINT_T0);
 
                 top_candidates.emplace(dist, currObjLable);
 
@@ -1633,6 +1834,7 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
     }
     while (top_candidates.size() > k)top_candidates.pop();
 }
+
 void QueryEngine::searchflatWithWeight_HopPath(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates_internalID,
@@ -1692,8 +1894,9 @@ void QueryEngine::searchflatWithWeight_HopPath(Node *node, unsigned int entrypoi
             // Calculate edge weight (probability) for the current edge
             Edge *current_edge = &g->edgeWeightList_[currnodeid][neighborid];
             float edge_prob = 1.0f / (1 + exp(-((current_edge->weight + μ) / T)));
-            if (edge_prob < thres_probability) {
-                if (std::fabs(current_edge->weight) <= 1e-12f) {
+            if (edge_prob <= thres_probability) {
+                continue;
+/*                 if (std::fabs(current_edge->weight) <= 1e-12f) {
                     thread_local std::mt19937 rng(
                         std::hash<std::thread::id>{}(std::this_thread::get_id()) ^ static_cast<uint32_t>(std::time(nullptr))
                     );
@@ -1703,7 +1906,7 @@ void QueryEngine::searchflatWithWeight_HopPath(Node *node, unsigned int entrypoi
                     }
                 } else {
                     continue;
-                }
+                } */
             }
 
             threadvisits[neighborid] = round_visit; // marked visited
@@ -1820,7 +2023,8 @@ void QueryEngine::searchGraphLeaf(Node * node,const void *query_data, size_t k,
 */
 void QueryEngine::TrainWeightinGraphLeaf(Node * node,const void *query_data, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
-                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag, IterRefinement_epoch ep_index)  {
+                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag, IterRefinement_epoch ep_index,
+                     int* groundtruth_id)  {
 
     if(node->leafgraph == nullptr) {
         std::cerr << "Warning: trying to train weight in leaf with null leafgraph, skipping..." << std::endl;
@@ -1862,7 +2066,7 @@ void QueryEngine::TrainWeightinGraphLeaf(Node * node,const void *query_data, siz
     }
 
     // search the flat level 
-    TrainWeightinflat(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, ep_index);  // efSearch > k 才有意义
+    TrainWeightinflat(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, ep_index, groundtruth_id);  // efSearch > k 才有意义
 
 };
 
@@ -1896,10 +2100,6 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
     Node ** candidates =  static_cast<Node **>(calloc(Node::num_leaf_node+1, sizeof(Node *)));
     if (candidates == nullptr) {
         fprintf(stderr, "Memory allocation failed for candidates\n");
-        if (this->learn_results[learn_index] != nullptr) {
-            free(this->learn_results[learn_index]);
-            this->learn_results[learn_index] = nullptr;
-        }
         return;
     }
     
@@ -1910,116 +2110,10 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
             i++;
         }
     }
-
-    
-/*     // step0: route query_ts from root to the leaf node it belongs to
-    Node *App_node = this->index->first_node; 
-    ts_type App_bsf = FLT_MAX;
-    if (App_node == nullptr) throw std::runtime_error("Error : First node == nullptr!");
-    while (!App_node->is_leaf) { 
-        if (App_node->node_split_policy_route_to_left(query_ts)) {
-            App_node = App_node->left_child;
-        } else {
-            App_node = App_node->right_child;
-        }
-    }
+    unsigned int candidates_count = candidate_leaf.size();
+    stats.num_candidates = candidate_leaf.size();
 
 
-    // step1: search App_node to get current top-k candidate and save in top_candidates
-    searchGraphLeaf(App_node,query_ts, k,
-                    top_candidates, App_bsf, stats, flags,
-                    curr_flag, false);
-
-    cout<<"ep_index:"<<ep_index<<" || learn_index:"<<learn_index<<endl;    float recall1 = calculateRecall(top_candidates, groundtruth_id, k, groundtruth_top_k);
-    cout<<"recall1:"<<recall1<<endl;
-
-
-    nprobes--;
-    if (nprobes == 0) {
-        while (top_candidates.size() > k)top_candidates.pop();
-
-        int m=0;
-        while (top_candidates.size() > 0) {
-
-            this->learn_results[learn_index][m++]=top_candidates.top().second;
-            top_candidates.pop();
-        }
-        double time = getElapsedTime(start);
-        // printKNN(topkID, k, time, visited);
-
-    }
-    else{
-
-    // step2: get candidate leaf
-    
-        // else.1 insert root_pq_item into pq
-        auto *root_pq_item = static_cast<query_result *>(malloc_search(sizeof(struct query_result)));
-
-        root_pq_item->node = this->index->first_node;
-        root_pq_item->distance = this->index->first_node->calculate_node_min_distance(this->index, query_ts, stats);
-
-        pqueue_insert(pq, root_pq_item); 
-
-        struct query_result *n;
-        ts_type child_distance;
-        ts_type bsf = FLT_MAX;
-
-        // else.2 pruning internal nodes and leaf nodes
-        query_result * candidates =  static_cast<query_result *>(calloc(Node::num_leaf_node+1, sizeof(struct query_result))); // 数组，距离 ((QueryEngine.cpp:1332))
-        unsigned int candidates_count = 0;
-        int pos;
-        kth_bsf = top_candidates.top().first; // current top-k_th timeseries distance
-        while ((n = static_cast<query_result *>(pqueue_pop(pq)))) {
-            if (n->distance > kth_bsf) {//getting through two pruning process is tricky...
-                break;
-            }
-            if (n->node->is_leaf) // n is a leaf
-            {
-
-                // candidates_count: candidate leaf number
-                // pos: index of candidate leaf
-                pos = candidates_count - 1; 
-
-                if (pos >= 0)
-                    while (pos >= 0 and n->distance < candidates[pos].distance) {     // 这种插入方法使得 candidates 是有序的，按照每个元素的距离递增排序
-                        candidates[pos + 1].node = candidates[pos].node;
-                        candidates[pos + 1].distance = candidates[pos].distance;
-                        pos--;
-                    }
-                candidates[pos + 1].node = n->node;
-                candidates[pos + 1].distance = n->distance;
-                candidates_count++;
-            } else                // n is a internal leaf
-            {
-                // check node->left_child
-                child_distance = n->node->left_child->calculate_node_min_distance(this->index, query_ts, stats);
-                if ((child_distance < kth_bsf) && (n->node->left_child != App_node)) //add epsilon
-                {
-                    auto *mindist_result_left = static_cast<query_result *>(malloc_search(sizeof(struct query_result)));
-                    mindist_result_left->node = n->node->left_child;
-                    mindist_result_left->distance = child_distance;
-                    pqueue_insert(pq, mindist_result_left);
-                }
-
-                // check node->right_child
-                child_distance = n->node->right_child->calculate_node_min_distance(this->index, query_ts, stats);
-                if ((child_distance < kth_bsf) && (n->node->right_child != App_node)) //add epsilon
-                {
-                    auto *mindist_result_right = static_cast<query_result *>(malloc_search(sizeof(struct query_result)));
-                    mindist_result_right->node = n->node->right_child;
-                    mindist_result_right->distance = child_distance;
-                    pqueue_insert(pq, mindist_result_right);
-                }
-            }
-
-            free(n);
-        } */
-        unsigned int candidates_count = candidate_leaf.size();
-        stats.num_candidates =candidate_leaf.size();
-
-    // step3： parallel search the graph of the leaf node
-
-        // 3.1 每个 qwdata 工作单元负责一个线程的数据处理任务
         if (parallel and nprobes > 1) { 
             for (int i = 1; i < nworker; i++) {
                 qwdata[i].id = i;
@@ -2033,7 +2127,7 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
             qwdata[0].flags = flags;
             qwdata[0].curr_flag = curr_flag;
 
-            // copypq(qwdata, top_candidates); // top_candidates复制到每个 pData[i].top_candidates
+            copypq(qwdata, top_candidates); // top_candidates复制到每个 pData[i].top_candidates
 
 
             pthread_rwlock_t lock_bsf = PTHREAD_RWLOCK_INITIALIZER; // 声明并初始化一个读写锁
@@ -2054,12 +2148,12 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
                     for (int i = 0; i < candidates_count; i++) {    
                         node = candidates[i];
                         TrainWeightinGraphLeaf(node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
-                                         *(worker->stats), worker->flags, worker->curr_flag, ep_index);
+                                         *(worker->stats), worker->flags, worker->curr_flag, ep_index, groundtruth_id);
                     }
                 }
             }
 
-            for(int i=1; i<nworker; i++){
+            for(int i=0; i<nworker; i++){
                 /* 对多线程结果进行合并 */
                 while(qwdata[i].top_candidates->size()>0){
                     top_candidates.emplace(qwdata[i].top_candidates->top());
@@ -2067,9 +2161,11 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
                 }
             }
 
-        } // end if (parallel and nprobes > 1) 
-        float recall2 = calculateRecall(top_candidates, groundtruth_id, k, groundtruth_top_k);
-        cout<<"recall2:"<<recall2<<endl;
+    } // end if (parallel and nprobes > 1) 
+    // Ensure we evaluate recall on the best global top-k, not the k worst of a larger heap
+    while (top_candidates.size() > k) top_candidates.pop();
+    float recall2 = calculateRecall(top_candidates, groundtruth_id, k, groundtruth_top_k);
+    cout<<"recall2:"<<recall2<<endl;
 
         /* 统计topkID */
         int m=0;
@@ -2083,25 +2179,6 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
         }
 
         double time = getElapsedTime(start);
-
-
-        /* // 4.3 update global stats
-        if (parallel and nprobes > 1) {
-            for (int i = 1; i < nworker; i++) {
-
-               // cout << "worker "<<i<<": visited "<<qwdata[i].stats->num_leaf_searched<<endl;
-                stats.num_knn_alters += qwdata[i].stats->num_knn_alters;
-                stats.num_leaf_checked += qwdata[i].stats->num_leaf_checked;
-                stats.num_leaf_searched += qwdata[i].stats->num_leaf_searched;
-                stats.distance_computations_hrl += qwdata[i].stats->distance_computations_hrl;
-                stats.distance_computations_bsl += qwdata[i].stats->distance_computations_bsl;
-
-            }
-        } */
-
-        // 4.4 输出结果数组 results
-        // printKNN(topkID, k, time, visited, parallel && nprobes > 1);
-        // printKNN(topkID, k, time, visited);
     
     // 4.5 清理内存
     if (candidates != nullptr) {
