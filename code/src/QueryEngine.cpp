@@ -162,8 +162,8 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
                                               cmp_pri, get_pri, set_pri, get_pos, set_pos);
 
 
-        // this->nworker = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
-        this->nworker = 1;
+        if (!this->nworker)this->nworker = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
+        //this->nworker = 1;
         if(this->nworker>nprobes-1)this->nworker = nprobes-1;
         this->qwdata = static_cast<worker_backpack__ *>(malloc(sizeof(worker_backpack__) * this->nworker));
 
@@ -2145,6 +2145,7 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
                     // for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
                     for (int i = 0; i < candidates_count; i++) {    
                         node = candidates[i];
+                    #pragma omp critical
                         TrainWeightinGraphLeaf(node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
                                          *(worker->stats), worker->flags, worker->curr_flag, ep_index, groundtruth_id);
                     }
