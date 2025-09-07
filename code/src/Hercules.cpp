@@ -1218,4 +1218,7 @@
 			}
 			delete[] this->knn_groundtruth;
 		}
+		if(this->queryengine) {
+			delete this->queryengine;
+		}
 	}
