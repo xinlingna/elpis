@@ -42,6 +42,7 @@
 		this->leaf_size=leaf_size;
 		this->timeseries_size = timeseries_size;
 		this->index = Index::initIndex(this->index_path, this->timeseries_size, 3072 * 1024, 1, this->leaf_size, efConstruction, m); // 参数暂时不用
+    	Node::max_leaf_size = this->leaf_size;
 
 		// base dataset
 		this->dataset = dataset;
