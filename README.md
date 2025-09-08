@@ -258,7 +258,7 @@ $ ./Release/ELPIS \
 
 ./build/ELPIS \
     --mode 3 \
-    --index-path /home/xln/elpis/index/W_gist_learn_2K_noWe/ \
+    --index-path /home/xln/elpis/index/W_gist_learn_2K_We/ \
     --dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_base.bin \
     --dataset-size 1000000 \
     --query_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_query.bin \
@@ -270,6 +270,7 @@ $ ./Release/ELPIS \
     --learn_dataset_size 500000 \
     --learn_groundtruth_dataset /home/xln/elpis/data/real/gist1M/gist/bin/gist_learn_top100_groundtruth.bin \
     --leaf-size 20000 \
+    --nprobes 116 \
     --timeseries-size 960 \
     --Lb 400 \
     --L 32 \
@@ -279,9 +280,11 @@ $ ./Release/ELPIS \
     --T 1.0 \
     --thres_probability 0.5 \
     --zero_edge_pass_ratio 0.2 \
-    --search_withWeight false \
+    --search_withWeight true \
     --ep 2
 
+
+<!-- screen3 -->
 ./build/ELPIS \
     --mode 3 \
     --index-path /home/xln/elpis/index/W_sift_learn_20K_noWe/ \
@@ -296,6 +299,35 @@ $ ./Release/ELPIS \
     --learn_dataset_size 100000 \
     --learn_groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn_top100_groundtruth.bin \
     --leaf-size 20000 \
+    --nprobes 95 \
+    --timeseries-size 128 \
+    --Lb 400 \
+    --L 32 \
+    --kb 16 \
+    --k 10 \
+    --μ 0 \
+    --T 1.0 \
+    --thres_probability 0.5 \
+    --zero_edge_pass_ratio 0.2 \
+    --search_withWeight false \
+    --ep 2
+
+<!-- screen4 -->
+./build/ELPIS \
+    --mode 3 \
+    --index-path /home/xln/elpis/index/W_sift_learn_20K_We/ \
+    --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin \
+    --dataset-size 1000000 \
+    --query_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_query.bin \
+    --query_dataset_size 10000 \
+    --groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_groundtruth.bin \
+    --groundtruth_dataset_size 10000 \
+    --groundtruth_top_k 100 \
+    --learn_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn.bin \
+    --learn_dataset_size 100000 \
+    --learn_groundtruth_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_learn_top100_groundtruth.bin \
+    --leaf-size 20000 \
+    --nprobes 95 \
     --timeseries-size 128 \
     --Lb 400 \
     --L 32 \
@@ -307,5 +339,4 @@ $ ./Release/ELPIS \
     --zero_edge_pass_ratio 0.2 \
     --search_withWeight true \
     --ep 2
-
 '''

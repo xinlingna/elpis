@@ -21,7 +21,7 @@ Index::Index(char *index_path, unsigned int timeseries_size, double buffered_mem
     this->time_stats->querying_time = 0;
     this->in_memory = 0;
     if(chdir(index_path) == 0){
-        cout<<"The index folder is already existing"<<index_path<< endl;
+        cout<<"The index folder is already existing:"<<index_path<< endl;
         deleteDirectory(index_path);
         // throw std::runtime_error("The index folder is already existing, Please make sure to give an non existing path to generate index within!");
     }

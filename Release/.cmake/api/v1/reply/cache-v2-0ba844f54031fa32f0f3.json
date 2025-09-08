@@ -1416,18 +1416,6 @@
 			],
 			"type" : "PATH",
 			"value" : "/usr/lib/x86_64-linux-gnu/cmake/boost_timer-1.83.0"
-		},
-		{
-			"name" : "libelpis_LIB_DEPENDS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Dependencies for the target"
-				}
-			],
-			"type" : "STATIC",
-			"value" : "general;TBB::tbb;"
 		}
 	],
 	"kind" : "cache",

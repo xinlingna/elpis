@@ -8,3 +8,6 @@ index/**
 
 # 忽略 data 目录中的所有文件
 data/**
+
+# 忽略 build 目录中的所有文件
+code/build/**

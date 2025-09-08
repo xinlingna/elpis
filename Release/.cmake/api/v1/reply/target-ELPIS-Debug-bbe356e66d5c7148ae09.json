@@ -26,25 +26,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 69,
+				"line" : 13,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 73,
-				"parent" : 0
-			},
-			{
-				"command" : 1,
-				"file" : 0,
-				"line" : 62,
+				"line" : 16,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 34,
+				"line" : 9,
 				"parent" : 0
 			}
 		]
@@ -55,7 +49,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : " -std=c++14 -mavx -mavx2 -msse3 -fopenmp -g -std=gnu++14"
+					"fragment" : " -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14"
 				}
 			],
 			"defines" : 
@@ -91,16 +85,12 @@
 				{
 					"backtrace" : 2,
 					"define" : "BOOST_TIMER_NO_LIB"
-				},
-				{
-					"backtrace" : 2,
-					"define" : "TBB_USE_DEBUG"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 3,
 					"path" : "/home/xln/elpis/code/include"
 				}
 			],
@@ -132,7 +122,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-std=c++14 -mavx -mavx2 -msse3 -fopenmp -g",
+				"fragment" : "-std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g",
 				"role" : "flags"
 			},
 			{
@@ -162,11 +152,6 @@
 			{
 				"backtrace" : 2,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.83.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libtbb.so.12.11",
 				"role" : "libraries"
 			}
 		],
