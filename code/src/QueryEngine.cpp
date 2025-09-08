@@ -151,8 +151,7 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
     memset(this->flags, 0, sizeof(hnswlib::vl_type) * Node::max_leaf_size);
     this->curr_flag = 0;//max value of ushort is 65K => in total of search on all queries, we should not exceed 65k searchleaf
 
-    this->pq = pqueue_init(Node::num_leaf_node,
-                           cmp_pri, get_pri, set_pri, get_pos, set_pos);
+    this->pq = pqueue_init(Node::num_leaf_node, cmp_pri, get_pri, set_pri, get_pos, set_pos);
 
 
     //sometimes std::thread return 0 so, we use sysconf(LINUX)

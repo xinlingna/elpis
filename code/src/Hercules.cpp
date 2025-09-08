@@ -42,7 +42,7 @@
 		this->leaf_size=leaf_size;
 		this->timeseries_size = timeseries_size;
 		this->index = Index::initIndex(this->index_path, this->timeseries_size, 3072 * 1024, 1, this->leaf_size, efConstruction, m); // 参数暂时不用
-
+        Node::max_leaf_size = this->leaf_size;       // 这里
 		// base dataset
 		this->dataset = dataset;
 		this->dataset_size = dataset_size;
@@ -1026,6 +1026,8 @@
 											this->nworker, this->flatt, this->k, this->ep, 
 											this->model_file, this->zero_edge_pass_ratio);
 		this->searchCandidateLeafNode();
+
+		
 
 		this->queryengine->queryBinaryFile(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T);
 
