@@ -8,9 +8,11 @@
 #include <cstring>
 #include <vector>
 #include <iostream>
+#include <chrono>
 #include <fstream>
 #include <numeric>
 #include <limits>
+#include <time.h>
 
 
     Hercules::Hercules(char *dataset, unsigned int dataset_size,
@@ -1027,12 +1029,15 @@
 											this->model_file, this->zero_edge_pass_ratio);
 		this->searchCandidateLeafNode();
 
-		
-
+        // 记录查询时间
+		auto start = chrono::high_resolution_clock::now();
 		this->queryengine->queryBinaryFile(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T);
+		auto end = chrono::high_resolution_clock::now();
+		auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+		auto duration_sec = duration.count() / 1000.0;
 
-		cout << "[Querying Time] "<< this->index->time_stats->querying_time <<"(sec)"<<endl;  
-        cout << "[QPS] "<< query_dataset_size*1.0/index->time_stats->querying_time <<endl;  
+		cout << "[Querying Time] "<< duration_sec <<"(sec)"<<endl;  
+        cout << "[QPS] "<< static_cast<double>(query_dataset_size) / duration_sec <<endl;  
 		double averageRecall = this->queryengine->calculateAverageRecall();
 		cout << "[Average Recall] "<< averageRecall << endl;
 		this->index->write(); // write hercules tree +HNSW of leaf node

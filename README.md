@@ -315,7 +315,7 @@ $ ./Release/ELPIS \
 <!-- screen4 -->
 ./build/ELPIS \
     --mode 3 \
-    --index-path /home/xln/elpis/index/W_sift_learn_20K_We/ \
+    --index-path /home/xln/elpis/index/W_sift_learn_20K_noWe/ \
     --dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_base.bin \
     --dataset-size 1000000 \
     --query_dataset /home/xln/elpis/data/real/sift1M/sift/bin/sift_query.bin \
@@ -337,6 +337,6 @@ $ ./Release/ELPIS \
     --T 1.0 \
     --thres_probability 0.5 \
     --zero_edge_pass_ratio 0.2 \
-    --search_withWeight true \
+    --search_withWeight false \
     --ep 2
 '''
