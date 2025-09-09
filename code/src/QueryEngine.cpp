@@ -901,6 +901,7 @@ void QueryEngine::TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned in
     if(ep==0)
         return;
 
+    this->curr_flag = 1;
     // preparation
     this->candidate_leaf_node=candidate_leaf_node;
     FILE *lfile=fopen(this->learn_dataset, "rb");
@@ -2077,6 +2078,8 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
 
     stats.reset();
 
+    this->curr_flag++;
+
     Time start = now();
 
     ts_type kth_bsf = FLT_MAX;  // global  kth_bsf
@@ -2212,6 +2215,8 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
     unsigned int candidates_count = candidate_leaf.size();
     stats.num_candidates = candidate_leaf.size();
 
+
+    this->curr_flag++;
 
     ts_type kth_bsf = FLT_MAX;  // global  kth_bsf
     Time start = now();
