@@ -32,7 +32,7 @@ public:
 
     char *groundtruth_dataset;
     unsigned int groundtruth_dataset_size;
-    int **groundtruth_list; // Assuming groundtruth is a list of indices or similar
+    int **groundtruth_list; 
     unsigned int groundtruth_top_k;
     int **learn_groundtruth_list;
 
@@ -110,10 +110,14 @@ public:
 
     QueryEngine *queryengine;
 
-    std::vector<std::set<Node*>> candidate_leaf_node;   // candidate leaf nodes per query
+    std::vector<std::set<Node*>> learn_candidate_leaf_node;   // candidate leaf nodes per learn vector
+    std::vector<std::set<Node*>> query_candidate_leaf_node;   // candidate leaf nodes per query vector
     std::unordered_map<int, Node*> leafNode2GraphMap; // map leafnode->id to graph
     void TrainWeight();
-    void getCandidateLeafNode(unsigned int selected_k);
+    void getLearnCandidateLeafNode(unsigned int selected_k);
+    void getQueryCandidateLeafNode(unsigned int selected_k);
+
+    void trainCandidateLeafNode();
     void searchCandidateLeafNode();
     void leafNodeID2Node();
 

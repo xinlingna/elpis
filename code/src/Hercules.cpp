@@ -1014,11 +1014,8 @@
 		/* learn_dataset训练权重 */
 
 		this->fillTsLeafMap();
-		this->getCandidateLeafNode(100);
-
-		// this->index->first_node->num_leaf_node = 0;
-		// this->index->first_node->num_internal_node = 0;
-		// this->index = Index::Read(this->index_path, 1); 
+		this->getLearnCandidateLeafNode(100);
+		this->getQueryCandidateLeafNode(100);
 
         this->queryengine = new QueryEngine(this->query_dataset, this->query_dataset_size, 
                                             this->groundtruth_dataset , this->groundtruth_top_k, this->groundtruth_dataset_size, 
@@ -1027,32 +1024,35 @@
 											this->index, this->efSearch, this->nprobes, this->parallel, 
 											this->nworker, this->flatt, this->k, this->ep, 
 											this->model_file, this->zero_edge_pass_ratio);
-		this->searchCandidateLeafNode();
+		auto start1 = chrono::high_resolution_clock::now();
+		this->trainCandidateLeafNode();
+		auto end1 = chrono::high_resolution_clock::now();
+		auto duration1 = chrono::duration_cast<chrono::milliseconds>(end1 - start1);
+		auto duration_sec1 = duration1.count() / 1000.0;
+
+
 
         // 记录查询时间
-		auto start = chrono::high_resolution_clock::now();
-		this->queryengine->queryBinaryFile(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T);
-		auto end = chrono::high_resolution_clock::now();
-		auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-		auto duration_sec = duration.count() / 1000.0;
+		auto start2 = chrono::high_resolution_clock::now();
+		//this->queryengine->queryBinaryFile(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T);
+		this->searchCandidateLeafNode();
+		auto end2 = chrono::high_resolution_clock::now();
+		auto duration2 = chrono::duration_cast<chrono::milliseconds>(end2 - start2);
+		auto duration_sec2 = duration2.count() / 1000.0;
 
-		cout << "[Querying Time] "<< duration_sec <<"(sec)"<<endl;  
-        cout << "[QPS] "<< static_cast<double>(query_dataset_size) / duration_sec <<endl;  
+		cout << "[Training Time] "<< duration_sec1 <<"(sec)"<<endl;
+
+		cout << "[Querying Time] "<< duration_sec2 <<"(sec)"<<endl;  
+        cout << "[QPS] "<< static_cast<double>(query_dataset_size) / duration_sec2 <<endl;  
 		double averageRecall = this->queryengine->calculateAverageRecall();
 		cout << "[Average Recall] "<< averageRecall << endl;
 		this->index->write(); // write hercules tree +HNSW of leaf node
 	}
 
 	
-	void Hercules::getCandidateLeafNode(unsigned int selected_k){
-		/**
-		 * 如果一个查询向量的top-k在某个叶子中，那么这个叶子就是候选叶子，记住该叶子节点。如果一个查询向量的top-k不在某个叶子中，那么这个叶子就是非候选叶子，无需记录在candidate_leaf_node中
-		 * 每个查询向量的候选叶子节点保存到candidate_leaf_node中
-		 * candidate_leaf_node[i][j]表示第i个查询向量的第j个候选叶子节点的id
-		 * 每个candidate_leaf_node[i]包含的候选叶子的数目不一样
-		 */
-        this->candidate_leaf_node.clear();                     // 可选：先清空旧内容
-        this->candidate_leaf_node.resize(this->learn_dataset_size);
+	void Hercules::getLearnCandidateLeafNode(unsigned int selected_k){
+        this->learn_candidate_leaf_node.clear();                     // 可选：先清空旧内容
+        this->learn_candidate_leaf_node.resize(this->learn_dataset_size);
 		selected_k=std::min<unsigned int>(selected_k,this->groundtruth_top_k);
 		for (size_t i = 0; i < this->learn_dataset_size; i++)
 		{
@@ -1078,10 +1078,50 @@
 					exit(-1);
 				}
 				// 将该叶子节点id插入到candidate_leaf_node[i]中
-				this->candidate_leaf_node[i].insert(leaf);
+				this->learn_candidate_leaf_node[i].insert(leaf);
 			}
 		}
 	}
+
+	void Hercules::getQueryCandidateLeafNode(unsigned int selected_k){
+		/**
+		 * 如果一个查询向量的top-k在某个叶子中，那么这个叶子就是候选叶子，记住该叶子节点。如果一个查询向量的top-k不在某个叶子中，那么这个叶子就是非候选叶子，无需记录在candidate_leaf_node中
+		 * 每个查询向量的候选叶子节点保存到candidate_leaf_node中
+		 * candidate_leaf_node[i][j]表示第i个查询向量的第j个候选叶子节点的id
+		 * 每个candidate_leaf_node[i]包含的候选叶子的数目不一样
+		 */
+        this->query_candidate_leaf_node.clear();                     // 可选：先清空旧内容
+        this->query_candidate_leaf_node.resize(this->query_dataset_size);
+		selected_k=std::min<unsigned int>(selected_k,this->groundtruth_top_k);
+		for (size_t i = 0; i < this->query_dataset_size; i++)
+		{
+			for (size_t j = 0; j < selected_k; j++)
+			{
+				int ts_key = this->groundtruth_list[i][j];
+				if (ts_key >= this->dataset_size || ts_key < 0) {
+					cout << "ts_key=" << ts_key << " is not between[0," << this->dataset_size << "]" << endl;
+					exit(-1);
+				}
+
+				auto it = this->ts_leaf_map.find(ts_key);
+				Node *leaf = nullptr;
+				if (it != this->ts_leaf_map.end()) {
+					leaf = it->second;
+					if (leaf == nullptr) {
+						std::cerr << "Error: Node* for key " << ts_key << " is nullptr!" << std::endl;
+						exit(-1);
+					}
+				}
+				else {
+					std::cerr << "Error: Key not found: " << ts_key << std::endl;
+					exit(-1);
+				}
+				// 将该叶子节点id插入到candidate_leaf_node[i]中
+				this->query_candidate_leaf_node[i].insert(leaf);
+			}
+		}
+	}
+
 
 	void Hercules::leafNodeID2Node(){
 		/*
@@ -1095,12 +1135,18 @@
 		}
 	}
 
-	void Hercules::searchCandidateLeafNode(){
+	void Hercules::trainCandidateLeafNode(){
 		/*
 		* 对于每个查询向量，搜索所有candidate leaf node
 		* 对该候选叶子节点进行边权训练
 		*/
-		this->queryengine->TrainWeightByLearnDataset(this->queryengine->ep, this->queryengine->k , this->candidate_leaf_node);
+		this->queryengine->TrainWeightByLearnDataset(this->queryengine->ep, this->queryengine->k , this->learn_candidate_leaf_node);
+
+	}
+
+
+	void Hercules::searchCandidateLeafNode(){
+			this->queryengine->queryWithWeight(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T, this->query_candidate_leaf_node);
 
 	}
 

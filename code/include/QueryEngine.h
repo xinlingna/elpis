@@ -75,8 +75,8 @@ public :
     querying_stats stats;   // global stats
     // float *results;       
     // std::vector<std::pair<float,unsigned int>> topkID;
-    int ** results;
-    int ** learn_results;
+    int ** results;  // 记录所有查询向量的搜索结果
+    int ** learn_results; // 记录所有学习向量的搜索结果
 
 
 
@@ -161,6 +161,14 @@ public :
                           float weight_update, 
                           float momentum_decay, 
                           float weight_bound);
+
+    void queryWithWeight(unsigned int k, int mode, bool search_withWeight, float thres_probability, float μ, float T, std::vector<std::set<Node *>> candidate_leaf_node);
+    void searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groundtruth_id,unsigned int k, unsigned int nprobes, unsigned int learn_index, bool search_withWeight,
+                                                    float thres_probability,float μ, float T, std::set<Node*> candidate_leaf);
+    void searchWithWeightinGraphLeaf(Node * node,const void *query_data, size_t k,
+                     std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
+                     float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag,
+                     bool search_withWeight,  float thres_probability, float μ, float T, int* groundtruth_id);
 
 
     void setEF(Node *node, int ef);

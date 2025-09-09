@@ -372,12 +372,6 @@ int main(int argc, char **argv) {
        
        
     }else if(mode==3){
-        // Index * index = Index::Read(index_path, mode); 
-        // QueryEngine * queryengine = new QueryEngine(query_dataset, query_dataset_size, 
-        //                                     groundtruth_dataset ,groundtruth_top_k, groundtruth_dataset_size,
-        //                                     learn_dataset, learn_dataset_size, learn_groundtruth_dataset,
-        //                                     dataset,
-        //                                     index, efSearch, nprobes, parallel, nworker, flatt, k, ep, model_file, zero_edge_pass_ratio); 
 
         Hercules * hercules = new Hercules(
             dataset, dataset_size,
@@ -398,7 +392,19 @@ int main(int argc, char **argv) {
        hercules->TrainWeight();
        delete hercules;
        
-    }
+    }else if(mode==4){
+
+        // 加载mode==3构建的文件
+        Index * index = Index::Read(index_path, mode); 
+        
+        QueryEngine * queryengine = new QueryEngine(query_dataset, query_dataset_size, 
+                                                    groundtruth_dataset ,groundtruth_top_k, groundtruth_dataset_size,
+                                                    learn_dataset, learn_dataset_size, learn_groundtruth_dataset,
+                                                    dataset,
+                                                    index, efSearch, nprobes, parallel, nworker, flatt, k, ep, model_file, zero_edge_pass_ratio); 
+        queryengine->queryBinaryFile(k, mode, search_withWeight, thres_probability, μ, T);  
+
+    }                  
 
     return 0;
 }
