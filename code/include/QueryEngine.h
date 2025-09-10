@@ -185,6 +185,10 @@ public :
     // 与查询过程中的 状态标记 有关
     unsigned short *flags;
     unsigned short curr_flag;
+
+    //统计剪枝数量
+    unsigned int skipped_vector_number;
+    unsigned int total_number;
 };
 
 

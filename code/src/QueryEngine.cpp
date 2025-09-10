@@ -117,7 +117,8 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
 /*
 * dataset: 为了验证无法剪枝引入的参数，其实是base dataset
 */
-    
+    this->skipped_vector_number = 0;
+
     this->dataset = dataset;
     this->query_filename = query_filename;
     this->query_dataset_size = query_dataset_size;
@@ -177,7 +178,7 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
 
             qwdata[i].flags = new hnswlib::vl_type [Node::max_leaf_size];
             memset(qwdata[i].flags, 0, sizeof(hnswlib::vl_type) * Node::max_leaf_size);
-            qwdata[i].curr_flag = 0;
+            qwdata[i].curr_flag = 0;    
 
         }
        // qwdata[0].localknn = static_cast<float *>(malloc(k*sizeof(float)));
@@ -185,6 +186,8 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
         qwdata[0].stats = &stats;                                // global  stats
         // qwdata[0].top_candidates = &top_candidates;             //  global   top_candidates
         qwdata[0].top_candidates = new std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>>();
+        qwdata[0].flags = new hnswlib::vl_type [Node::max_leaf_size];
+        qwdata[0].curr_flag = 0;
 
         omp_set_dynamic(0);
         omp_set_num_threads(this->nworker);
@@ -938,7 +941,7 @@ void QueryEngine::TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned in
         fread(learn_ts, sizeof(ts_type), ts_length, lfile);
         fread(learn_groundtruth_id, sizeof(int), groundtruth_top_k,  this->learn_groundtruth_file);
         TrainWeightinNpLeafParallel(learn_ts, learn_groundtruth_id, k, nprobes, learn_loaded, ep_index, this->candidate_leaf_node[learn_loaded]);
-        this->curr_flag++;
+        // this->curr_flag++;
         learn_loaded++;
 
     }
@@ -1055,6 +1058,7 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
     int *groundtruth_id = static_cast<int *>(malloc_search( sizeof(int) * groundtruth_top_k));
     
 
+    
     // Record start time
     auto start = now();
     while(q_loaded < this->query_dataset_size){
@@ -1067,6 +1071,9 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
 
         searchWithWeightinNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded, 
                                         search_withWeight, thres_probability, μ, T, candidate_leaf_node[q_loaded]);
+
+        this->total_number += this->skipped_vector_number;
+        this->skipped_vector_number=0;
 
         q_loaded++;
         this->curr_flag++;
@@ -1261,7 +1268,7 @@ void QueryEngine::TrainWeightinflat(Node * node, unsigned int entrypoint, const 
                 std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> & top_candidates2,
                 float & bsf,querying_stats & stats, unsigned short *threadvisits, unsigned short & round_visit, IterRefinement_epoch ep,
                 int* groundtruth_id){
-
+        
         std::vector<unsigned int> hop_path1;
         std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> top_candidates_internalID1;
         std::priority_queue<std::pair<float,unsigned int>, std::vector<std::pair<float,unsigned int>>> top_candidates1;
@@ -1756,6 +1763,7 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
                     );
                     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
                     if (dist(rng) > this->zero_edge_pass_ratio) {
+                        this->skipped_vector_number++;
                         continue;
                     }
                 }
@@ -2079,7 +2087,7 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
 
     stats.reset();
 
-    this->curr_flag++;
+    // this->curr_flag++;
 
     Time start = now();
 
@@ -2128,7 +2136,6 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
         qwdata[0].kth_bsf = &kth_bsf;   // global kth_bsf
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
-        qwdata[0].flags = flags;
         //qwdata[0].curr_flag = curr_flag;
 
         // copypq(qwdata, top_candidates); // top_candidates复制到每个 pData[i].top_candidates
@@ -2228,6 +2235,7 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
 
         }
         qwdata[0].kth_bsf = &kth_bsf;   // global kth_bsf
+        // qwdata[0].stats->reset();
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
         qwdata[0].flags = flags;

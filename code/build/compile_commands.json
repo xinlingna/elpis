@@ -1,62 +1,62 @@
 [
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/BufferManager.cpp.o -c /mnt/hdd/xln/elpis/code/src/BufferManager.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/BufferManager.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/BufferManager.cpp.o -c /home/xln/elpis/code/src/BufferManager.cpp",
+  "file": "/home/xln/elpis/code/src/BufferManager.cpp",
   "output": "CMakeFiles/libelpis.dir/src/BufferManager.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/calc_utils.cpp.o -c /mnt/hdd/xln/elpis/code/src/calc_utils.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/calc_utils.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/calc_utils.cpp.o -c /home/xln/elpis/code/src/calc_utils.cpp",
+  "file": "/home/xln/elpis/code/src/calc_utils.cpp",
   "output": "CMakeFiles/libelpis.dir/src/calc_utils.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Hercules.cpp.o -c /mnt/hdd/xln/elpis/code/src/Hercules.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/Hercules.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Hercules.cpp.o -c /home/xln/elpis/code/src/Hercules.cpp",
+  "file": "/home/xln/elpis/code/src/Hercules.cpp",
   "output": "CMakeFiles/libelpis.dir/src/Hercules.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Node.cpp.o -c /mnt/hdd/xln/elpis/code/src/Node.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/Node.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Node.cpp.o -c /home/xln/elpis/code/src/Node.cpp",
+  "file": "/home/xln/elpis/code/src/Node.cpp",
   "output": "CMakeFiles/libelpis.dir/src/Node.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Index.cpp.o -c /mnt/hdd/xln/elpis/code/src/Index.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/Index.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Index.cpp.o -c /home/xln/elpis/code/src/Index.cpp",
+  "file": "/home/xln/elpis/code/src/Index.cpp",
   "output": "CMakeFiles/libelpis.dir/src/Index.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/pqueue.cpp.o -c /mnt/hdd/xln/elpis/code/src/pqueue.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/pqueue.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/pqueue.cpp.o -c /home/xln/elpis/code/src/pqueue.cpp",
+  "file": "/home/xln/elpis/code/src/pqueue.cpp",
   "output": "CMakeFiles/libelpis.dir/src/pqueue.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o -c /mnt/hdd/xln/elpis/code/src/QueryEngine.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/QueryEngine.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o -c /home/xln/elpis/code/src/QueryEngine.cpp",
+  "file": "/home/xln/elpis/code/src/QueryEngine.cpp",
   "output": "CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Setting.cpp.o -c /mnt/hdd/xln/elpis/code/src/Setting.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/Setting.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/Setting.cpp.o -c /home/xln/elpis/code/src/Setting.cpp",
+  "file": "/home/xln/elpis/code/src/Setting.cpp",
   "output": "CMakeFiles/libelpis.dir/src/Setting.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/file_utils.cpp.o -c /mnt/hdd/xln/elpis/code/src/file_utils.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/src/file_utils.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/libelpis.dir/src/file_utils.cpp.o -c /home/xln/elpis/code/src/file_utils.cpp",
+  "file": "/home/xln/elpis/code/src/file_utils.cpp",
   "output": "CMakeFiles/libelpis.dir/src/file_utils.cpp.o"
 },
 {
-  "directory": "/mnt/hdd/xln/elpis/code/build",
-  "command": "/usr/bin/c++ -DBOOST_CHRONO_DYN_LINK -DBOOST_CHRONO_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DBOOST_TIMER_DYN_LINK -DBOOST_TIMER_NO_LIB -I/mnt/hdd/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/ELPIS.dir/main.cpp.o -c /mnt/hdd/xln/elpis/code/main.cpp",
-  "file": "/mnt/hdd/xln/elpis/code/main.cpp",
+  "directory": "/home/xln/elpis/code/build",
+  "command": "/usr/bin/c++ -DBOOST_CHRONO_DYN_LINK -DBOOST_CHRONO_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DBOOST_TIMER_DYN_LINK -DBOOST_TIMER_NO_LIB -I/home/xln/elpis/code/include  -std=c++14 -mavx -mavx2 -msse3  -fopenmp  -g -std=gnu++14 -o CMakeFiles/ELPIS.dir/main.cpp.o -c /home/xln/elpis/code/main.cpp",
+  "file": "/home/xln/elpis/code/main.cpp",
   "output": "CMakeFiles/ELPIS.dir/main.cpp.o"
 }
 ]

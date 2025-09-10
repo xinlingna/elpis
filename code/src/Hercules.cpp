@@ -1024,11 +1024,15 @@
 											this->index, this->efSearch, this->nprobes, this->parallel, 
 											this->nworker, this->flatt, this->k, this->ep, 
 											this->model_file, this->zero_edge_pass_ratio);
-		auto start1 = chrono::high_resolution_clock::now();
-		this->trainCandidateLeafNode();
-		auto end1 = chrono::high_resolution_clock::now();
-		auto duration1 = chrono::duration_cast<chrono::milliseconds>(end1 - start1);
-		auto duration_sec1 = duration1.count() / 1000.0;
+		double duration_sec1 = 0;
+		if(this->search_withWeight){
+		    auto start1 = chrono::high_resolution_clock::now();
+		    this->trainCandidateLeafNode();
+		    auto end1 = chrono::high_resolution_clock::now();
+		    auto duration1 = chrono::duration_cast<chrono::milliseconds>(end1 - start1);
+		    duration_sec1 = duration1.count() / 1000.0;
+		}
+
 
 
     	delete this->queryengine;
@@ -1054,6 +1058,7 @@
         cout << "[QPS] "<< static_cast<double>(query_dataset_size) / duration_sec2 <<endl;  
 		double averageRecall = this->queryengine->calculateAverageRecall();
 		cout << "[Average Recall] "<< averageRecall << endl;
+		cout<<"Average skipped edges number: "<<this->queryengine->total_number*0.1/this->query_dataset_size<<endl;
 		this->index->write(); // write hercules tree +HNSW of leaf node
 	}
 
