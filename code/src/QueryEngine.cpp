@@ -901,7 +901,6 @@ void QueryEngine::TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned in
     if(ep==0)
         return;
 
-    this->curr_flag = 1;
     // preparation
     this->candidate_leaf_node=candidate_leaf_node;
     FILE *lfile=fopen(this->learn_dataset, "rb");
@@ -939,6 +938,7 @@ void QueryEngine::TrainWeightByLearnDataset(IterRefinement_epoch ep, unsigned in
         fread(learn_ts, sizeof(ts_type), ts_length, lfile);
         fread(learn_groundtruth_id, sizeof(int), groundtruth_top_k,  this->learn_groundtruth_file);
         TrainWeightinNpLeafParallel(learn_ts, learn_groundtruth_id, k, nprobes, learn_loaded, ep_index, this->candidate_leaf_node[learn_loaded]);
+        this->curr_flag++;
         learn_loaded++;
 
     }
@@ -1069,6 +1069,7 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
                                         search_withWeight, thres_probability, μ, T, candidate_leaf_node[q_loaded]);
 
         q_loaded++;
+        this->curr_flag++;
 
     }
 
@@ -2128,7 +2129,7 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
         qwdata[0].flags = flags;
-        qwdata[0].curr_flag = curr_flag;
+        //qwdata[0].curr_flag = curr_flag;
 
         // copypq(qwdata, top_candidates); // top_candidates复制到每个 pData[i].top_candidates
 
@@ -2215,9 +2216,6 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
     unsigned int candidates_count = candidate_leaf.size();
     stats.num_candidates = candidate_leaf.size();
 
-
-    this->curr_flag++;
-
     ts_type kth_bsf = FLT_MAX;  // global  kth_bsf
     Time start = now();
     if (parallel and nprobes > 1) { 
@@ -2227,12 +2225,13 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
             qwdata[i].kth_bsf = &kth_bsf;
             qwdata[i].stats->reset();
             qwdata[i].bsf = FLT_MAX;
+
         }
         qwdata[0].kth_bsf = &kth_bsf;   // global kth_bsf
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
         qwdata[0].flags = flags;
-        qwdata[0].curr_flag = curr_flag;
+        //qwdata[0].curr_flag = curr_flag;
 
         // copypq(qwdata, top_candidates); // top_candidates复制到每个 pData[i].top_candidates
 
