@@ -1031,6 +1031,14 @@
 		auto duration_sec1 = duration1.count() / 1000.0;
 
 
+    	delete this->queryengine;
+    	this->queryengine = new QueryEngine(this->query_dataset, this->query_dataset_size,
+											this->groundtruth_dataset , this->groundtruth_top_k, this->groundtruth_dataset_size,
+											this->learn_dataset, this->learn_dataset_size, this->learn_groundtruth_dataset,
+											this->dataset,
+											this->index, this->efSearch, this->nprobes, this->parallel,
+											this->nworker, this->flatt, this->k, this->ep,
+											this->model_file, this->zero_edge_pass_ratio);
 
         // 记录查询时间
 		auto start2 = chrono::high_resolution_clock::now();
