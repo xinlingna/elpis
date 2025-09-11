@@ -1060,7 +1060,6 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
 
     
     // Record start time
-    auto start = now();
     while(q_loaded < this->query_dataset_size){
 
         /* load query */
@@ -1069,8 +1068,10 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
         /* load groundtruth */
         fread(groundtruth_id, sizeof(int), groundtruth_top_k, this->groundtruth_file);    
 
+        auto start = now();
         searchWithWeightinNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded, 
                                         search_withWeight, thres_probability, μ, T, candidate_leaf_node[q_loaded]);
+        index->time_stats->querying_time += getElapsedTime(start);
 
         this->total_number += this->skipped_vector_number;
         this->skipped_vector_number=0;
@@ -1084,7 +1085,7 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
     free(groundtruth_id);
     this->closeFile();
 
-    index->time_stats->querying_time = getElapsedTime(start);
+    
 
 }
 
