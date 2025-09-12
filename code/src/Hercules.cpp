@@ -1058,7 +1058,7 @@
         cout << "[QPS] "<< static_cast<double>(query_dataset_size) / duration_sec2 <<endl;  
 		double averageRecall = this->queryengine->calculateAverageRecall();
 		cout << "[Average Recall] "<< averageRecall << endl;
-		cout<<"Average skipped edges number: "<<this->queryengine->total_number*0.1/this->query_dataset_size<<endl;
+		cout<<"Average skipped edges number: "<<this->queryengine->total_number*1.0/this->query_dataset_size<<endl;
 		this->index->write(); // write hercules tree +HNSW of leaf node
 	}
 

@@ -119,6 +119,7 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
 */
     this->skipped_vector_number_per_query = std::vector<unsigned int>(query_dataset_size, 0);
     this->dist_computation_number_per_query = std::vector<unsigned int>(query_dataset_size, 0);
+    this->total_number=0;
 
 
     this->dataset = dataset;
@@ -165,10 +166,11 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
                                               cmp_pri, get_pri, set_pri, get_pos, set_pos);
 
 
-        this->nworker = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
+        unsigned int total_core = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
 
         // this->nworker = 1;
-        if(this->nworker>nprobes-1)this->nworker = nprobes-1;
+        // if(this->nworker>nprobes-1)this->nworker = nprobes-1;
+        if(this->nworker>total_core)this->nworker=total_core;
         this->qwdata = static_cast<worker_backpack__ *>(malloc(sizeof(worker_backpack__) * this->nworker));
 
         local_nprobes = (nprobes-1) / this->nworker;
@@ -1093,6 +1095,7 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
     for (unsigned int i = 0; i < this->query_dataset_size; i++) {
         outfile << this->skipped_vector_number_per_query[i] <<" "<< this->dist_computation_number_per_query[i] << std::endl;
     }
+    cout<<"skipped_vector_file:"<<skipped_vector_file<<endl;
     outfile.close();
 }
 
@@ -1773,6 +1776,7 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
                     );
                     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
                     if (dist(rng) > this->zero_edge_pass_ratio) {
+                        this->total_number++;
                         this->skipped_vector_number_per_query[q_loaded]++;
                         continue;
                     }
