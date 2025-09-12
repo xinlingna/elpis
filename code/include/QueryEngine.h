@@ -128,7 +128,7 @@ public :
                 std::vector<unsigned int> &hop_path);
 
     
-    void  searchflatWithWeight(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
+    void  searchflatWithWeight(Node *node, unsigned int entrypoint, const void *data_point, unsigned int q_loaded, size_t beamwidth, size_t k,
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                           float &bsf, querying_stats &stats, unsigned short *threadvisits, unsigned short &round_visit,
                           float thres_probability=0.3,float μ=0.0, float T=1.0);
@@ -165,7 +165,7 @@ public :
     void queryWithWeight(unsigned int k, int mode, bool search_withWeight, float thres_probability, float μ, float T, std::vector<std::set<Node *>> candidate_leaf_node);
     void searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groundtruth_id,unsigned int k, unsigned int nprobes, unsigned int learn_index, bool search_withWeight,
                                                     float thres_probability,float μ, float T, std::set<Node*> candidate_leaf);
-    void searchWithWeightinGraphLeaf(Node * node,const void *query_data, size_t k,
+    void searchWithWeightinGraphLeaf(Node * node,const void *query_data, unsigned int q_loaded, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                      float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag,
                      bool search_withWeight,  float thres_probability, float μ, float T, int* groundtruth_id);
@@ -187,7 +187,8 @@ public :
     unsigned short curr_flag;
 
     //统计剪枝数量
-    unsigned int skipped_vector_number;
+    std::vector<unsigned int> skipped_vector_number_per_query;
+    std::vector<unsigned int> dist_computation_number_per_query;
     unsigned int total_number;
 };
 

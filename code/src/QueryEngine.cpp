@@ -117,7 +117,9 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
 /*
 * dataset: 为了验证无法剪枝引入的参数，其实是base dataset
 */
-    this->skipped_vector_number = 0;
+    this->skipped_vector_number_per_query = std::vector<unsigned int>(query_dataset_size, 0);
+    this->dist_computation_number_per_query = std::vector<unsigned int>(query_dataset_size, 0);
+
 
     this->dataset = dataset;
     this->query_filename = query_filename;
@@ -1071,13 +1073,10 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
         auto start = now();
         searchWithWeightinNpLeafParallel(query_ts, groundtruth_id, k, nprobes, q_loaded, 
                                         search_withWeight, thres_probability, μ, T, candidate_leaf_node[q_loaded]);
-        index->time_stats->querying_time += getElapsedTime(start);
-
-        this->total_number += this->skipped_vector_number;
-        this->skipped_vector_number=0;
+        this->index->time_stats->querying_time += getElapsedTime(start);
 
         q_loaded++;
-        this->curr_flag++;
+        // this->curr_flag++;
 
     }
 
@@ -1085,8 +1084,16 @@ void QueryEngine::queryWithWeight(unsigned int k, int mode, bool search_withWeig
     free(groundtruth_id);
     this->closeFile();
 
-    
-
+    // 将this->skipped_vector_number_per_query[i] this->dist_computation_number_per_query[i]写入文件
+    std::string skipped_vector_file = std::string(this->index->index_path) + "/skipped_total_number_per_query.txt";
+    std::ofstream outfile(skipped_vector_file, std::ios::app);
+    if (!outfile) {
+        std::cerr << "Cannot open file: " << skipped_vector_file << std::endl;
+    }
+    for (unsigned int i = 0; i < this->query_dataset_size; i++) {
+        outfile << this->skipped_vector_number_per_query[i] <<" "<< this->dist_computation_number_per_query[i] << std::endl;
+    }
+    outfile.close();
 }
 
 
@@ -1699,7 +1706,7 @@ void QueryEngine::updatePathWeights(hnswlib::HierarchicalNSW<float>* g,
     }
 }
 
-void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, const void *data_point, size_t beamwidth, size_t k,
+void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, const void *data_point, unsigned int q_loaded, size_t beamwidth, size_t k,
                           std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                           float &bsf, querying_stats &stats, unsigned short *threadvisits, unsigned short &round_visit,
                           float thres_probability, float μ, float T) {
@@ -1752,6 +1759,8 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
 
             // Check if this neighbor has already been visited
             if (threadvisits[neighborid] == round_visit) continue;
+            this->dist_computation_number_per_query[q_loaded]++;
+
 
             // Calculate edge weight (probability) for the current edge  currnodeid->neighborid
             Edge *current_edge = &g->edgeWeightList_[currnodeid][neighborid];
@@ -1764,7 +1773,7 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
                     );
                     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
                     if (dist(rng) > this->zero_edge_pass_ratio) {
-                        this->skipped_vector_number++;
+                        this->skipped_vector_number_per_query[q_loaded]++;
                         continue;
                     }
                 }
@@ -1969,7 +1978,7 @@ void QueryEngine::searchGraphLeaf(Node * node,const void *query_data, size_t k,
 
     // search the flat level 
     if(searchWithWeight){
-        searchflatWithWeight(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, thres_probability, μ, T);
+        searchflatWithWeight(node, currObj, query_data, 0, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, thres_probability, μ, T);
     }else{
         searchflat(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag);
     }
@@ -2032,7 +2041,7 @@ void QueryEngine::TrainWeightinGraphLeaf(Node * node,const void *query_data, siz
 
 };
 
-void QueryEngine::searchWithWeightinGraphLeaf(Node * node,const void *query_data, size_t k,
+void QueryEngine::searchWithWeightinGraphLeaf(Node * node,const void *query_data, unsigned int q_loaded, size_t k,
                      std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>> &top_candidates,
                      float &bsf, querying_stats &stats, unsigned short *flags, unsigned short & flag,
                      bool search_withWeight, float thres_probability, float μ, float T, int* groundtruth_id)  {
@@ -2077,7 +2086,7 @@ void QueryEngine::searchWithWeightinGraphLeaf(Node * node,const void *query_data
     }
 
     if(search_withWeight)
-        searchflatWithWeight(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, 
+        searchflatWithWeight(node, currObj, query_data, q_loaded, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag, 
                         thres_probability, μ, T);  // efSearch > k 才有意义
     else
         searchflat(node, currObj, query_data, std::max(g->ef_, k), k , top_candidates, bsf, stats, flags, flag);
@@ -2239,7 +2248,7 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
         // qwdata[0].stats->reset();
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
-        qwdata[0].flags = flags;
+        // qwdata[0].flags = flags;
         //qwdata[0].curr_flag = curr_flag;
 
         // copypq(qwdata, top_candidates); // top_candidates复制到每个 pData[i].top_candidates
@@ -2261,7 +2270,7 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
                 // for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
                 for (int i = 0; i < candidates_count; i++) {    
                     node = candidates[i];
-                    searchWithWeightinGraphLeaf(node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
+                    searchWithWeightinGraphLeaf(node, query_ts, query_index, k, *(worker->top_candidates), worker->bsf, 
                                      *(worker->stats), worker->flags, worker->curr_flag,
                                        search_withWeight, thres_probability, μ, T, groundtruth_id);
                 }

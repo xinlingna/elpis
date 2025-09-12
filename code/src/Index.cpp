@@ -20,6 +20,7 @@ Index::Index(char *index_path, unsigned int timeseries_size, double buffered_mem
     this->time_stats->index_building_time = 0;
     this->time_stats->querying_time = 0;
     this->in_memory = 0;
+    this->index_path = index_path;
     if(chdir(index_path) == 0){
         cout<<"The index folder is already existing:"<<index_path<< endl;
         deleteDirectory(index_path);
