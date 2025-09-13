@@ -1045,12 +1045,14 @@
 											this->model_file, this->zero_edge_pass_ratio);
 
         // 记录查询时间
-		// auto start2 = chrono::high_resolution_clock::now();
+		auto start2 = chrono::high_resolution_clock::now();
 		//this->queryengine->queryBinaryFile(this->k, this->mode, this->search_withWeight, this->thres_probability, this->μ, this->T);
 		this->searchCandidateLeafNode();
-		// auto end2 = chrono::high_resolution_clock::now();
-		// auto duration2 = chrono::duration_cast<chrono::milliseconds>(end2 - start2);
-		auto duration_sec2 = index->time_stats->querying_time;
+		auto end2 = chrono::high_resolution_clock::now();
+		auto duration2 = chrono::duration_cast<chrono::milliseconds>(end2 - start2);
+		auto duration_sec2=duration2.count()/1000.0;
+		// 如果index中有time_stats，可以直接使用
+		// auto duration_sec2 = index->time_stats->querying_time;
 
 		cout << "[Training Time] "<< duration_sec1 <<"(sec)"<<endl;
 

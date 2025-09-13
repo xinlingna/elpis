@@ -1,13 +1,13 @@
 # ninja log v5
-3	168	1757647846878111493	CMakeFiles/libelpis.dir/src/pqueue.cpp.o	cf6339e4345a64f
-4	273	1757647846982110697	CMakeFiles/libelpis.dir/src/file_utils.cpp.o	73340707181c229a
-3	349	1757647847059110107	CMakeFiles/libelpis.dir/src/Setting.cpp.o	51c5a0b7f2b6d35e
-2	1057	1757647847766104695	CMakeFiles/libelpis.dir/src/BufferManager.cpp.o	632a853d7d69c318
-2	1093	1757647847803104412	CMakeFiles/libelpis.dir/src/calc_utils.cpp.o	2c671e140b97cff3
-3	1134	1757647847843104105	CMakeFiles/libelpis.dir/src/Index.cpp.o	8173f07b3e426dca
-4	1331	1757647848040102597	CMakeFiles/ELPIS.dir/main.cpp.o	9c8efa020e109a87
-2	2045	1757647848751097155	CMakeFiles/libelpis.dir/src/Node.cpp.o	4ae783dab7e2d389
-3	2108	1757647848814096673	CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o	5f9193cc274e8356
-2	2213	1757647848918095877	CMakeFiles/libelpis.dir/src/Hercules.cpp.o	50b9d4a2e315abb1
-2213	2323	1757647849028095035	liblibelpis.a	7a2ab5c609c8c0ef
-2323	2450	1757647849158094040	ELPIS	1afc1c70b0bb2afc
+3	156	1757772224775363381	CMakeFiles/libelpis.dir/src/pqueue.cpp.o	cf6339e4345a64f
+4	263	1757772224882363015	CMakeFiles/libelpis.dir/src/file_utils.cpp.o	73340707181c229a
+4	319	1757772224937362827	CMakeFiles/libelpis.dir/src/Setting.cpp.o	51c5a0b7f2b6d35e
+2	1064	1757772225682360275	CMakeFiles/libelpis.dir/src/BufferManager.cpp.o	632a853d7d69c318
+2	1079	1757772225697360224	CMakeFiles/libelpis.dir/src/calc_utils.cpp.o	2c671e140b97cff3
+3	1137	1757772225755360025	CMakeFiles/libelpis.dir/src/Index.cpp.o	8173f07b3e426dca
+4	1338	1757772225955359340	CMakeFiles/ELPIS.dir/main.cpp.o	9c8efa020e109a87
+3	2015	1757772226630357024	CMakeFiles/libelpis.dir/src/Node.cpp.o	4ae783dab7e2d389
+4	2136	1757772226751356609	CMakeFiles/libelpis.dir/src/QueryEngine.cpp.o	5f9193cc274e8356
+2	2192	1757772226807356417	CMakeFiles/libelpis.dir/src/Hercules.cpp.o	50b9d4a2e315abb1
+2192	2400	1757772226991355785	liblibelpis.a	7a2ab5c609c8c0ef
+2400	2536	1757772227153355229	ELPIS	1afc1c70b0bb2afc

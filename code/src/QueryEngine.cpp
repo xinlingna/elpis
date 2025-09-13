@@ -166,14 +166,15 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
                                               cmp_pri, get_pri, set_pri, get_pos, set_pos);
 
 
-        unsigned int total_core = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency() -1;
+        unsigned int total_core = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency();
 
+        // this->nworker = (std::thread::hardware_concurrency()==0)? sysconf(_SC_NPROCESSORS_ONLN) : std::thread::hardware_concurrency()-1;
         // this->nworker = 1;
         // if(this->nworker>nprobes-1)this->nworker = nprobes-1;
         if(this->nworker>total_core)this->nworker=total_core;
         this->qwdata = static_cast<worker_backpack__ *>(malloc(sizeof(worker_backpack__) * this->nworker));
 
-        local_nprobes = (nprobes-1) / this->nworker;
+        local_nprobes = nprobes / this->nworker;
         for(int i=1;i<this->nworker;i++){
             qwdata[i].stats = static_cast<querying_stats *>(malloc(sizeof(querying_stats)));
             qwdata[i].top_candidates = new std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>>();
@@ -186,11 +187,13 @@ QueryEngine::QueryEngine(const char *query_filename, unsigned int query_dataset_
 
         }
        // qwdata[0].localknn = static_cast<float *>(malloc(k*sizeof(float)));
-        qwdata[0].local_nprobes += (nprobes-1)%this->nworker;
-        qwdata[0].stats = &stats;                                // global  stats
+        qwdata[0].local_nprobes = nprobes %this->nworker;
+        // qwdata[0].stats = &stats;                                // global  stats
+        qwdata[0].stats = static_cast<querying_stats *>(malloc(sizeof(querying_stats)));
         // qwdata[0].top_candidates = &top_candidates;             //  global   top_candidates
         qwdata[0].top_candidates = new std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>>>();
         qwdata[0].flags = new hnswlib::vl_type [Node::max_leaf_size];
+        memset(qwdata[0].flags, 0, sizeof(hnswlib::vl_type) * Node::max_leaf_size);
         qwdata[0].curr_flag = 0;
 
         omp_set_dynamic(0);
@@ -1268,10 +1271,13 @@ void QueryEngine::searchflat(Node * node, unsigned int entrypoint, const void *d
                         LBGRAPH = top_candidates.top().first;
 
             }
-            }
         }
     }
-
+       
+    while(top_candidates.size()>k){
+        top_candidates.pop();
+    }
+}
 
 
 /* 迭代训练bottom layer 边权 */
@@ -1757,12 +1763,17 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
             int neighborid = *(data + j);
 
             // Pre-fetch if necessary
-            _mm_prefetch((char *) (threadvisits + *(data + j + 1)), _MM_HINT_T0);
-            _mm_prefetch(g->data_level0_memory_ + (*(data + j + 1)) * g->size_data_per_element_ + g->offsetData_, _MM_HINT_T0);
+            if (j + 1 <= neighborhood) {
+                _mm_prefetch((char *) (threadvisits + *(data + j + 1)), _MM_HINT_T0);
+                _mm_prefetch(g->data_level0_memory_ + (*(data + j + 1)) * g->size_data_per_element_ + g->offsetData_, _MM_HINT_T0);
+                _mm_prefetch(g->edgeWeightList_+ currnodeid* g->cur_element_count + *(data + j + 1), _MM_HINT_T0);
+            }
+
 
             // Check if this neighbor has already been visited
             if (threadvisits[neighborid] == round_visit) continue;
-            this->dist_computation_number_per_query[q_loaded]++;
+            // this->dist_computation_number_per_query[q_loaded]++;
+
 
 
             // Calculate edge weight (probability) for the current edge  currnodeid->neighborid
@@ -1776,8 +1787,8 @@ void  QueryEngine::searchflatWithWeight(Node *node, unsigned int entrypoint, con
                     );
                     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
                     if (dist(rng) > this->zero_edge_pass_ratio) {
-                        this->total_number++;
-                        this->skipped_vector_number_per_query[q_loaded]++;
+                        // this->total_number++;
+                        // this->skipped_vector_number_per_query[q_loaded]++;
                         continue;
                     }
                 }
@@ -2148,6 +2159,7 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
             qwdata[i].bsf = FLT_MAX;
         }
         qwdata[0].kth_bsf = &kth_bsf;   // global kth_bsf
+        qwdata[0].stats->reset();
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
         //qwdata[0].curr_flag = curr_flag;
@@ -2163,10 +2175,13 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
 
     // 3.2 开始并行搜索
         {
-            #pragma omp parallel num_threads(nworker) private(node, worker) shared(qwdata, candidates_count, candidates,  query_ts, k)
+            // #pragma omp parallel num_threads(nworker) private(node, worker) shared(qwdata, candidates_count, candidates,  query_ts, k)
+            #pragma omp parallel num_threads(nworker) private(node, worker) shared(qwdata, candidates_count, candidates,  query_ts, k, top_candidates)
+
             {
                 worker = qwdata+omp_get_thread_num();
-
+                worker->curr_flag = 0;
+                memset(worker->flags, 0, sizeof(hnswlib::vl_type) * Node::max_leaf_size);
                 // 3.2.1 每个线程处理一个循环迭代
                 #pragma omp for schedule(static, 1) 
                 // for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
@@ -2174,17 +2189,24 @@ void QueryEngine::TrainWeightinNpLeafParallel(ts_type *query_ts, int *groundtrut
                     node = candidates[i];
                     TrainWeightinGraphLeaf(node, query_ts,  k, *(worker->top_candidates), worker->bsf, 
                                      *(worker->stats), worker->flags, worker->curr_flag, ep_index, groundtruth_id);
+                    #pragma omp critical(top_candidates_merge)
+                    {
+                        while (worker->top_candidates->size() > 0) {
+                            top_candidates.emplace(worker->top_candidates->top());
+                            worker->top_candidates->pop();
+                        }
+                    }
                 }
             }
         }
 
-        for(int i=0; i<nworker; i++){
-            /* 对多线程结果进行合并 */
+/*         for(int i=0; i<nworker; i++){
+            // 对多线程结果进行合并
             while(qwdata[i].top_candidates->size()>0){
                 top_candidates.emplace(qwdata[i].top_candidates->top());
                 qwdata[i].top_candidates->pop();
             }
-        }
+        } */
 
     } 
 
@@ -2237,6 +2259,10 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
     unsigned int candidates_count = candidate_leaf.size();
     stats.num_candidates = candidate_leaf.size();
 
+    for (int i = 0; i < nworker; ++i) {
+        qwdata[i].curr_flag = 0;
+        memset(qwdata[i].flags, 0, sizeof(hnswlib::vl_type) * Node::max_leaf_size);
+    }
     ts_type kth_bsf = FLT_MAX;  // global  kth_bsf
     Time start = now();
     if (parallel and nprobes > 1) { 
@@ -2249,7 +2275,7 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
 
         }
         qwdata[0].kth_bsf = &kth_bsf;   // global kth_bsf
-        // qwdata[0].stats->reset();
+        qwdata[0].stats->reset();
         qwdata[0].bsf = FLT_MAX;
         qwdata[0].id=0;
         // qwdata[0].flags = flags;
@@ -2265,34 +2291,50 @@ void QueryEngine::searchWithWeightinNpLeafParallel(ts_type *query_ts, int *groun
 
     // 3.2 开始并行搜索
         {
-            #pragma omp parallel num_threads(nworker) private(node, worker) shared(qwdata, candidates_count, candidates,  query_ts, k)
+            #pragma omp parallel num_threads(nworker) private(node, worker) shared(qwdata, candidates_count, candidates,  query_ts, k, top_candidates)
             {
                 worker = qwdata+omp_get_thread_num();
+                worker->curr_flag = 0;
+                memset(worker->flags, 0, sizeof(hnswlib::vl_type) * Node::max_leaf_size);
 
                 // 3.2.1 每个线程处理一个循环迭代
-                #pragma omp for schedule(static, 1) 
+                // #pragma omp for schedule(static, 1) 
+                #pragma omp for schedule(dynamic, 1)
                 // for (int i = 0; i < std::min(candidates_count,nprobes); i++) { 
                 for (int i = 0; i < candidates_count; i++) {    
                     node = candidates[i];
                     searchWithWeightinGraphLeaf(node, query_ts, query_index, k, *(worker->top_candidates), worker->bsf, 
                                      *(worker->stats), worker->flags, worker->curr_flag,
                                        search_withWeight, thres_probability, μ, T, groundtruth_id);
+                    // 合并当前线程的结果到共享 top_candidates，并清空线程本地的队列
+                    #pragma omp critical(top_candidates_merge)
+                    {
+                        while (worker->top_candidates->size() > 0) {
+                            top_candidates.emplace(worker->top_candidates->top());
+                            worker->top_candidates->pop();
+                        }
+                    }
                 }
             }
         }
 
-        for(int i=0; i<nworker; i++){
-            /* 对多线程结果进行合并 */
+        cout<<"************************************************"<<endl;
+        cout<<"query_index:"<<query_index<<endl;
+/*         for(int i=0; i<nworker; i++){
+            // 对多线程结果进行合并
             while(qwdata[i].top_candidates->size()>0){
                 top_candidates.emplace(qwdata[i].top_candidates->top());
+                cout<<qwdata[i].top_candidates->top().second<<" ";
                 qwdata[i].top_candidates->pop();
             }
-        }
+            cout<<endl;
+
+        } */
 
     } 
     while (top_candidates.size() > k) top_candidates.pop();
-    cout<<"************************************************"<<endl;
-    cout<<"query_index:"<<query_index<<endl;
+    // cout<<"************************************************"<<endl;
+    // cout<<"query_index:"<<query_index<<endl;
     float recall2 = calculateRecall(top_candidates, groundtruth_id, k, groundtruth_top_k);
     cout<<"recall2:"<<recall2<<endl;
 
